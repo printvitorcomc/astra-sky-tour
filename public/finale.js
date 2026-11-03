@@ -1,4 +1,4 @@
-/* ASTRA v7 — in-place finale refinement. No renderer or imagery replacement.
+/* ASTRA v8.1 — in-place finale refinement. No renderer or imagery replacement.
  * Aladin Lite remains the sole sky renderer. Only its sky surface is transformed;
  * every label, hit target, credit and piece of interface text stays in screen space.
  */
@@ -32,11 +32,10 @@
     // At the native 360-degree limit, CSS continues the exact same zoom curve.
     const opticalFov=Math.exp(mix(Math.log(start.fov),Math.log(360/layout.scale),q));
     const fov=Math.min(360,opticalFov);
-    // Keep full overscan while rotation/pan are expressive; only shrink once the
-    // projected all-sky ellipse can fit naturally inside the viewport.
-    const shrink=smooth(clamp((q-.72)/.28,0,1));
-    const targetScale=layout.scale;
-    const surfaceScale=mix(1,targetScale,shrink);
+    // Keep the renderer at full overscan until Aladin reaches the native 360° AIT
+    // ellipse. After that point CSS continues the exact same optical zoom curve,
+    // so the only boundary that can be exposed is the natural celestial ellipse.
+    const surfaceScale=Math.min(1,360/opticalFov);
     const galacticCenter=[266.4051,-28.936175],finalCenter=[0,0];
     const a=slerpRaDec(start.center,galacticCenter,q),b=slerpRaDec(galacticCenter,finalCenter,q);
     const center=slerpRaDec(a,b,q);
