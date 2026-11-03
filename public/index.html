@@ -20,6 +20,7 @@ html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-f
 button{font:inherit}
 button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .app{position:relative;width:100%;height:100svh;min-height:560px;background:#000;overflow:hidden}
+.sky-stage{position:absolute;inset:0;transform-origin:50% 50%;will-change:transform;backface-visibility:hidden}
 #aladin-lite-div{position:absolute;inset:0;width:100%;height:100%;background:#000}
 #aladin-lite-div:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.18),transparent 24%,transparent 72%,rgba(0,0,0,.30));z-index:3}
 #aladin-lite-div .aladin-location,#aladin-lite-div .aladin-coo-location,#aladin-lite-div .aladin-cooLocation,#aladin-lite-div .aladin-location-text{display:none!important}
@@ -67,6 +68,14 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .endcard p{margin:0;color:var(--muted);font-size:14px;line-height:1.5;max-width:540px}
 .replay{margin-top:20px;border:1px solid var(--line);background:transparent;color:var(--text);border-radius:999px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer}
 
+.finale-overlay{position:absolute;z-index:34;inset:0;pointer-events:none;opacity:0;transition:opacity 1.2s ease;background:radial-gradient(circle at 50% 48%,rgba(0,0,0,.02) 0 20%,rgba(0,0,0,.18) 62%,rgba(0,0,0,.42) 100%)}
+.finale-overlay.on{opacity:1}
+.finale-brand{position:absolute;left:50%;top:47%;width:min(92vw,980px);transform:translate(-50%,-42%) scale(.985);text-align:center;opacity:0;transition:opacity 4.8s cubic-bezier(.16,.8,.25,1),transform 4.8s cubic-bezier(.16,.8,.25,1)}
+.finale-brand.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.finale-brand.out{opacity:0;transform:translate(-50%,-54%) scale(1.015);transition-duration:3.4s}
+.finale-brand small{display:block;margin-bottom:13px;font-size:clamp(10px,1vw,12px);font-weight:600;letter-spacing:.19em;text-transform:uppercase;color:rgba(255,255,255,.58);text-shadow:0 2px 20px rgba(0,0,0,.9)}
+.finale-brand h3{margin:0;font-size:clamp(46px,6.7vw,96px);line-height:.94;font-weight:500;letter-spacing:-.065em;color:rgba(255,255,255,.96);text-shadow:0 4px 34px rgba(0,0,0,.82)}
+
 .gate{position:absolute;z-index:60;inset:0;display:flex;align-items:flex-end;background:linear-gradient(180deg,rgba(0,0,0,.08) 0%,rgba(0,0,0,.10) 34%,rgba(5,5,5,.68) 76%,rgba(5,5,5,.94) 100%);padding:28px 22px calc(32px + env(safe-area-inset-bottom));text-align:left;transition:opacity .65s ease;overflow:hidden}
 .gate:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 38%,transparent 0 28%,rgba(0,0,0,.10) 54%,rgba(0,0,0,.36) 100%);pointer-events:none}
 .gate:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.10),transparent 28%,transparent 72%,rgba(0,0,0,.10));pointer-events:none}
@@ -101,7 +110,7 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 </head>
 <body>
 <div class="app">
-  <div id="aladin-lite-div" aria-label="Interactive astronomical sky survey"></div>
+  <div class="sky-stage" id="skyStage"><div id="aladin-lite-div" aria-label="Interactive astronomical sky survey"></div></div>
   <div class="topbar" id="topbar">
     <div class="progress" aria-label="Tour progress">
       <div class="letter" data-step="0">A</div><div class="letter" data-step="1">S</div><div class="letter" data-step="2">T</div><div class="letter" data-step="3">R</div><div class="letter" data-step="4">A</div>
@@ -131,6 +140,13 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
     <button class="replay" id="replay">Replay tour</button>
   </section>
 
+  <div class="finale-overlay" id="finaleOverlay" aria-hidden="true">
+    <div class="finale-brand" id="finaleBrand">
+      <small>Frontier intelligence</small>
+      <h3>GPT-6 Astra</h3>
+    </div>
+  </div>
+
   <div class="loader" id="loader">
     <div class="loader-inner"><h1>ASTRA</h1><p>Loading the real sky…</p><div class="tiny">Real DSS2 survey data · CDS / Aladin</div></div>
   </div>
@@ -154,16 +170,16 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 <script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js" charset="utf-8"></script>
 <script>
 const stars=[
-  {letter:'A',name:'Antares',type:'Red supergiant · Scorpius',ra:247.3520833333,dec:-26.4319444444,coords:'16:29:24.5  −26:25:55',fact1:['DISTANCE','~550 light-years'],fact2:['SCALE','Enormous'],audio:'/audio/01-antares.mp3',duration:18816},
-  {letter:'S',name:'Sirius',type:'Blue-white star system · Canis Major',ra:101.2870833333,dec:-16.7161111111,coords:'06:45:08.9  −16:42:58',fact1:['DISTANCE','8.6 light-years'],fact2:['KNOWN FOR','Brightest night star'],audio:'/audio/02-sirius.mp3',duration:18048},
-  {letter:'T',name:'Tarazed',type:'Orange bright giant · Aquila',ra:296.565,dec:10.6133333333,coords:'19:46:15.6  +10:36:48',fact1:['DISTANCE','~395 light-years'],fact2:['LIGHT LEFT','Around the 1600s'],audio:'/audio/03-tarazed.mp3',duration:16368},
-  {letter:'R',name:'Rigel',type:'Blue supergiant · Orion',ra:78.6345833333,dec:-8.2016666667,coords:'05:14:32.3  −08:12:06',fact1:['DISTANCE','~860 light-years'],fact2:['COLOR','Blue-white'],audio:'/audio/04-rigel.mp3',duration:16704},
-  {letter:'A',name:'Aldebaran',type:'Orange giant · Taurus',ra:68.98,dec:16.5091666667,coords:'04:35:55.2  +16:30:33',fact1:['DISTANCE','~65 light-years'],fact2:['KNOWN AS',"The Bull's eye"],audio:'/audio/05-aldebaran.mp3',duration:15936}
+  {letter:'A',name:'Antares',type:'Red supergiant · Scorpius',ra:247.3520833333,dec:-26.4319444444,coords:'16:29:24.5  −26:25:55',fact1:['DISTANCE','~550 light-years'],fact2:['SCALE','Enormous'],audio:'/audio/01-antares.mp3',duration:18816,arrivalFov:1.25},
+  {letter:'S',name:'Sirius',type:'Blue-white star system · Canis Major',ra:101.2870833333,dec:-16.7161111111,coords:'06:45:08.9  −16:42:58',fact1:['DISTANCE','8.6 light-years'],fact2:['KNOWN FOR','Brightest night star'],audio:'/audio/02-sirius.mp3',duration:18048,arrivalFov:1.10},
+  {letter:'T',name:'Tarazed',type:'Orange bright giant · Aquila',ra:296.565,dec:10.6133333333,coords:'19:46:15.6  +10:36:48',fact1:['DISTANCE','~395 light-years'],fact2:['LIGHT LEFT','Around the 1600s'],audio:'/audio/03-tarazed.mp3',duration:16368,arrivalFov:.72},
+  {letter:'R',name:'Rigel',type:'Blue supergiant · Orion',ra:78.6345833333,dec:-8.2016666667,coords:'05:14:32.3  −08:12:06',fact1:['DISTANCE','~860 light-years'],fact2:['COLOR','Blue-white'],audio:'/audio/04-rigel.mp3',duration:16704,arrivalFov:1.20},
+  {letter:'A',name:'Aldebaran',type:'Orange giant · Taurus',ra:68.98,dec:16.5091666667,coords:'04:35:55.2  +16:30:33',fact1:['DISTANCE','~65 light-years'],fact2:['KNOWN AS',"The Bull's eye"],audio:'/audio/05-aldebaran.mp3',duration:15936,arrivalFov:.78}
 ];
 
 let aladin=null,tourToken=0,currentIndex=-1,skyReady=false;
 let musicTrack=null,narrationTrack=null,musicFadeFrame=null,narrationResolve=null;
-let gateMotionFrame=0,arrivalZoomFrame=0,viewInteractionVersion=0;
+let gateMotionFrame=0,arrivalZoomFrame=0,finaleFrame=0,viewInteractionVersion=0;
 const MUSIC_BASE=.19;
 const MUSIC_DUCK=.09;
 const EARTH_ANCHOR={ra:266.4,dec:-29.0};
@@ -171,6 +187,7 @@ const WELCOME_DURATION=28896;
 const OUTRO_DURATION=32448;
 const narrationCache=new Map();
 const specialAudioCache=new Map();
+let finaleTimers=[];
 const $=id=>document.getElementById(id);
 const soundtrackUrl=window.ASTRA_CONFIG?.soundtrackUrl;
 if(soundtrackUrl)$('musicTrack').src=soundtrackUrl;
@@ -180,12 +197,20 @@ const wrap360=x=>((x%360)+360)%360;
 const shortestDelta=(a,b)=>{let d=b-a;while(d>180)d-=360;while(d<-180)d+=360;return d};
 const reducedMotion=()=>window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+
+
 function getTravelProfile(){
   const w=Math.max(320,window.innerWidth||320),h=Math.max(480,window.innerHeight||480),aspect=w/h;
-  if(aspect>=1.45)return{cruise:52,end:4.2,maxStart:58,voiceAt:.60};
-  if(aspect>=.95)return{cruise:62,end:4.6,maxStart:68,voiceAt:.60};
-  return{cruise:72,end:5.0,maxStart:78,voiceAt:.60};
+  if(aspect>=1.45)return{cruise:48,end:3.35,maxStart:52,voiceAt:.70,arrivalScale:1};
+  if(aspect>=.95)return{cruise:56,end:3.75,maxStart:62,voiceAt:.70,arrivalScale:1.12};
+  return{cruise:64,end:4.30,maxStart:70,voiceAt:.70,arrivalScale:1.26};
 }
+function arrivalFovFor(target){
+  const profile=getTravelProfile();
+  return Math.max(.55,(target.arrivalFov||1.1)*profile.arrivalScale);
+}
+
+
 function centerProgress(raw){
   return 1-Math.pow(1-Math.max(0,Math.min(1,raw)),2.45);
 }
@@ -314,26 +339,30 @@ function noteViewInteraction(){
   viewInteractionVersion++;
   cancelArrivalZoom();
 }
-function gentleArrivalZoom(target,token,duration=8500){
+
+
+function gentleArrivalZoom(target,token,duration=9000){
   return new Promise(resolve=>{
     cancelArrivalZoom();
     if(!aladin||token!==tourToken){resolve();return}
-    const version=viewInteractionVersion;
-    const pair=(aladin.getFov&&aladin.getFov())||[5,5];
-    const startFov=Math.max(2.8,Number(pair[0])||5);
-    const endFov=Math.max(2.6,startFov*.72);
+    const version=viewInteractionVersion,profile=getTravelProfile();
+    const pair=(aladin.getFov&&aladin.getFov())||[profile.end,profile.end];
+    const startFov=Math.max(arrivalFovFor(target)*1.35,Number(pair[0])||profile.end);
+    const endFov=arrivalFovFor(target);
     const start=performance.now();let last=0;
     function frame(now){
       if(token!==tourToken||version!==viewInteractionVersion){arrivalZoomFrame=0;resolve();return}
       const raw=Math.min(1,(now-start)/duration);
-      if(raw<1&&now-last<45){arrivalZoomFrame=requestAnimationFrame(frame);return}last=now;
-      const q=1-Math.pow(1-raw,2.2);
-      try{aladin.gotoRaDec(target.ra,target.dec);aladin.setFoV(startFov+(endFov-startFov)*q)}catch(_){}
+      if(raw<1&&now-last<38){arrivalZoomFrame=requestAnimationFrame(frame);return}last=now;
+      const q=1-Math.pow(1-raw,2.15);
+      try{aladin.gotoRaDec(target.ra,target.dec);aladin.setFoV(expLerp(startFov,endFov,q))}catch(_){ }
       if(raw<1)arrivalZoomFrame=requestAnimationFrame(frame);else{arrivalZoomFrame=0;resolve()}
     }
     arrivalZoomFrame=requestAnimationFrame(frame);
   })
 }
+
+
 
 function stopGateSkyMotion(){if(gateMotionFrame)cancelAnimationFrame(gateMotionFrame);gateMotionFrame=0}
 function startGateSkyMotion(){
@@ -428,7 +457,7 @@ function zoomOutToOverview(token,duration=18500){
   })
 }
 
-function flyTo(target,token,duration,onApproach){
+function flyTo(target,token,duration,onApproach,voiceAtOverride=null){
   return new Promise(resolve=>{
     cancelArrivalZoom();
     if(!aladin||token!==tourToken){resolve();return}
@@ -438,6 +467,7 @@ function flyTo(target,token,duration,onApproach){
     const currentFov=Number(fovPair[0])||profile.end;
     const startFov=Math.min(profile.maxStart,Math.max(1.2,currentFov));
     const cruise=profile.cruise,endFov=profile.end,start=performance.now();
+    const voiceAt=voiceAtOverride==null?profile.voiceAt:voiceAtOverride;
     let lastRender=0,voiceStarted=false;
     try{
       aladin.setProjection('TAN');
@@ -446,7 +476,7 @@ function flyTo(target,token,duration,onApproach){
     function frame(now){
       if(token!==tourToken){resolve();return}
       const raw=Math.min(1,(now-start)/duration);
-      if(!voiceStarted&&raw>=profile.voiceAt){voiceStarted=true;try{onApproach&&onApproach()}catch(_){}}
+      if(!voiceStarted&&raw>=voiceAt){voiceStarted=true;try{onApproach&&onApproach()}catch(_){}}
       if(raw<1&&now-lastRender<33){requestAnimationFrame(frame);return}lastRender=now;
       const p=centerProgress(raw),ra=wrap360(startRa+dRa*p),dec=startDec+dDec*p;
       let fov;
@@ -466,59 +496,155 @@ function flyTo(target,token,duration,onApproach){
   })
 }
 
-async function arriveAt(i){
+
+async function arriveAt(i,options={}){
   const token=tourToken;
   currentIndex=i;setProgress(i);hideCard();
   const s=stars[i];setCoords(s.coords);
   unlockNarration(i);
   setTravel(true,`Travelling to ${s.name}`);setMusicLevel(MUSIC_BASE);
 
-  const flightDuration=Math.max(11200,Math.min(14000,Math.round(s.duration*.72)));
+  const initialLeg=Boolean(options.initialLeg);
+  const flightDuration=initialLeg?14000:Math.max(9800,Math.min(13200,Math.round(s.duration*.66)));
+  const waitForAudio=options.waitForAudio||null;
   let narrationStarted=false,narrationPromise=null;
   const startVoice=()=>{
     if(narrationStarted||token!==tourToken)return;
-    narrationStarted=true;narrationPromise=playNarration(i);
+    narrationStarted=true;
+    narrationPromise=(async()=>{
+      if(waitForAudio)await waitForAudio;
+      if(token!==tourToken)return;
+      return playNarration(i);
+    })();
   };
 
-  await flyTo(s,token,flightDuration,startVoice);
+  await flyTo(s,token,flightDuration,startVoice,initialLeg?.78:null);
   if(token!==tourToken)return;
   if(!narrationStarted)startVoice();
 
   setTravel(false);renderStar(i);
-  gentleArrivalZoom(s,token,Math.min(9000,Math.max(6500,Math.round(s.duration*.5))));
+  gentleArrivalZoom(s,token,Math.min(10500,Math.max(8200,Math.round(s.duration*.58))));
   if(narrationPromise)await narrationPromise;
   if(token!==tourToken)return;
   showNext();
 }
 
+
+function resetSkyStage(){
+  if(finaleFrame)cancelAnimationFrame(finaleFrame);
+  finaleFrame=0;
+  const stage=$('skyStage');
+  if(stage){stage.style.transform='';stage.style.filter=''}
+}
+function hideFinaleOverlay(){
+  finaleTimers.forEach(id=>clearTimeout(id));
+  finaleTimers=[];
+  $('finaleOverlay').classList.remove('on');
+  $('finaleBrand').classList.remove('on','out');
+  resetSkyStage();
+}
+function finaleEaseIn(t){return t*t*t}
+function finaleEaseOut(t){return 1-Math.pow(1-t,3)}
+function animateFinale(token,duration=OUTRO_DURATION){
+  return new Promise(resolve=>{
+    cancelArrivalZoom();resetSkyStage();
+    if(!aladin||token!==tourToken){resolve();return}
+    const stage=$('skyStage');
+    const center=aladin.getRaDec(),pair=(aladin.getFov&&aladin.getFov())||[2,2];
+    const startRa=center[0],startDec=center[1],startFov=Math.max(.7,Number(pair[0])||2);
+    const dRaToGalaxy=shortestDelta(startRa,EARTH_ANCHOR.ra),dDecToGalaxy=EARTH_ANCHOR.dec-startDec;
+    const start=performance.now();let last=0,ait=false,titleShown=false,titleLeaving=false,travelChanged=false;
+    $('finaleOverlay').classList.add('on');
+    try{aladin.setProjection('TAN')}catch(_){ }
+    function frame(now){
+      if(token!==tourToken){resetSkyStage();resolve();return}
+      const elapsed=Math.min(duration,now-start),raw=elapsed/duration;
+      if(elapsed<duration&&now-last<32){finaleFrame=requestAnimationFrame(frame);return}last=now;
+
+      let ra,dec,fov,rotation,scale;
+      if(elapsed<3400){
+        const p=elapsed/3400,q=ease(p);
+        ra=wrap360(startRa+dRaToGalaxy*q);dec=startDec+dDecToGalaxy*q;
+        fov=expLerp(startFov,46,q);rotation=18*q;scale=1+.10*q;
+      }else if(elapsed<11000){
+        const p=(elapsed-3400)/7600,q=ease(p),r=finaleEaseIn(p);
+        ra=EARTH_ANCHOR.ra;dec=EARTH_ANCHOR.dec;
+        fov=expLerp(46,7.2,q);rotation=18+(250-18)*r;scale=1.10+.18*q;
+      }else if(elapsed<18600){
+        const p=(elapsed-11000)/7600,q=finaleEaseOut(p);
+        ra=EARTH_ANCHOR.ra;dec=EARTH_ANCHOR.dec;
+        fov=expLerp(7.2,5.4,q);rotation=250+(315-250)*q;scale=1.28-.06*q;
+      }else{
+        const p=(elapsed-18600)/(duration-18600),q=ease(p),slow=finaleEaseOut(p);
+        const dRa=shortestDelta(EARTH_ANCHOR.ra,0);
+        ra=wrap360(EARTH_ANCHOR.ra+dRa*q);dec=EARTH_ANCHOR.dec*(1-q);
+        fov=expLerp(5.4,360,q);rotation=315+(360-315)*slow;scale=1.22-.22*q;
+        if(!travelChanged){travelChanged=true;setTravel(true,'Revealing the full sky')}
+        if(!ait&&p>.47){ait=true;try{aladin.setProjection('AIT')}catch(_){ }}
+      }
+
+      if(!titleShown&&elapsed>=11000){
+        titleShown=true;$('finaleBrand').classList.add('on');
+      }
+      if(!titleLeaving&&elapsed>=24200){
+        titleLeaving=true;$('finaleBrand').classList.add('out');
+      }
+
+      try{aladin.gotoRaDec(ra,dec);aladin.setFoV(fov)}catch(_){ }
+      if(stage)stage.style.transform=`scale(${scale.toFixed(4)}) rotate(${rotation.toFixed(3)}deg)`;
+
+      if(elapsed<duration){finaleFrame=requestAnimationFrame(frame)}else{
+        finaleFrame=0;
+        try{aladin.setProjection('AIT');aladin.gotoRaDec(0,0);aladin.setFoV(360)}catch(_){ }
+        if(stage)stage.style.transform='';
+        resolve();
+      }
+    }
+    finaleFrame=requestAnimationFrame(frame);
+  })
+}
+
 async function finishTour(){
   const token=tourToken;
-  cancelArrivalZoom();hideCard();setCoords('');
-  const outroPromise=playSpecial('/audio/06-this-is-astra.mp3');
-  setTravel(true,'Revealing the full sky');setMusicLevel(MUSIC_BASE);
-  const zoomPromise=zoomOutToOverview(token,18500);
-  await Promise.all([zoomPromise,outroPromise]);
+  cancelArrivalZoom();hideCard();setCoords('');hideFinaleOverlay();
+  $('topbar').classList.remove('on');
+  setTravel(true,'Entering the final orbit');setMusicLevel(MUSIC_BASE);
+
+  let beginFinale,finaleStarted=false;
+  const finalePromise=new Promise(resolve=>{
+    beginFinale=()=>{
+      if(finaleStarted)return;
+      finaleStarted=true;
+      animateFinale(token,OUTRO_DURATION).then(resolve);
+    };
+  });
+  const outroPromise=playSpecial('/audio/06-this-is-astra.mp3',beginFinale);
+  finaleTimers.push(setTimeout(beginFinale,700));
+
+  await Promise.all([outroPromise,finalePromise]);
   if(token!==tourToken)return;
-  setTravel(false);clearProgress();document.querySelectorAll('.letter').forEach(el=>el.classList.add('done'));$('topbar').classList.add('on');$('endcard').classList.add('on')
+  setTravel(false);hideFinaleOverlay();
+  clearProgress();
+  document.querySelectorAll('.letter').forEach((el,idx)=>setTimeout(()=>el.classList.add('done'),idx*110));
+  $('topbar').classList.add('on');$('endcard').classList.add('on');
 }
 
 async function startJourney(){
   if(!skyReady)return;
   startMusic();unlockSpecial('/audio/00-welcome.mp3');prepareSpecial('/audio/06-this-is-astra.mp3','auto');
   stopGateSkyMotion();cancelArrivalZoom();
-  $('gate').classList.add('off');$('endcard').classList.remove('on');$('topbar').classList.remove('on');
+  $('gate').classList.add('off');$('endcard').classList.remove('on');$('topbar').classList.remove('on');hideFinaleOverlay();
   stopNarration();tourToken++;const token=tourToken;clearProgress();setCoords('');
 
   await moveToEarth(token,4800);
   if(token!==tourToken)return;
 
   const introPromise=playSpecial('/audio/00-welcome.mp3',()=>prepareNarration(0));
-  const departurePromise=earthDeparture(token,27000);
-  await Promise.all([departurePromise,introPromise]);
+  await earthDeparture(token,18000);
   if(token!==tourToken)return;
 
   $('topbar').classList.add('on');
-  arriveAt(0);
+  arriveAt(0,{initialLeg:true,waitForAudio:introPromise});
 }
 function goNext(){if(currentIndex<stars.length-1){arriveAt(currentIndex+1)}else finishTour()}
 
@@ -538,7 +664,7 @@ function init(){
 
 $('startBtn').addEventListener('click',startJourney);
 $('nextBtn').addEventListener('click',goNext);
-$('replay').addEventListener('click',()=>{$('endcard').classList.remove('on');$('gate').classList.remove('off');$('topbar').classList.remove('on');clearProgress();setCoords('');currentIndex=-1;stopNarration();cancelArrivalZoom();try{aladin.setProjection('TAN');aladin.gotoRaDec(EARTH_ANCHOR.ra,EARTH_ANCHOR.dec);aladin.setFoV(25)}catch(_){}startGateSkyMotion()});
+$('replay').addEventListener('click',()=>{$('endcard').classList.remove('on');$('gate').classList.remove('off');$('topbar').classList.remove('on');clearProgress();setCoords('');currentIndex=-1;stopNarration();cancelArrivalZoom();hideFinaleOverlay();try{aladin.setProjection('TAN');aladin.gotoRaDec(EARTH_ANCHOR.ra,EARTH_ANCHOR.dec);aladin.setFoV(25)}catch(_){}startGateSkyMotion()});
 const skyEl=$('aladin-lite-div');
 ['pointerdown','touchstart'].forEach(type=>skyEl.addEventListener(type,noteViewInteraction,{passive:true}));
 skyEl.addEventListener('wheel',noteViewInteraction,{passive:true});

@@ -1,6 +1,6 @@
-# ASTRA — recovered camera-audio
+# ASTRA — recovered cinematic
 
-Recovered source snapshot from `ASTRA-camera-audio-refined.zip`.
+Recovered source snapshot from `ASTRA-cinematic-refinement.zip`.
 This commit was created during the archive import, not during original development.
 
 Run `python3 -m http.server 8080 --directory public` and open
