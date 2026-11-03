@@ -1,4 +1,4 @@
-/* ASTRA v8.3 — in-place finale refinement. No renderer or imagery replacement.
+/* ASTRA v8.4 — in-place finale refinement. No renderer or imagery replacement.
  * Aladin Lite remains the sole sky renderer. Only its sky surface is transformed;
  * every label, hit target, credit and piece of interface text stays in screen space.
  */

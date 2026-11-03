@@ -4,14 +4,15 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1,viewport-fit=cover" />
 <title>ASTRA — A Five-Star Space Tour</title>
-<meta name="astra-build" content="8.3.0-editorial-loading-refine" />
+<meta name="astra-build" content="8.4.0-timing-loading-motion-audio" />
 <link rel="preconnect" href="https://aladin.cds.unistra.fr" crossorigin>
 <link rel="preconnect" href="https://alasky.cds.unistra.fr" crossorigin>
 <link rel="dns-prefetch" href="//aladin.cds.unistra.fr">
 <link rel="dns-prefetch" href="//alasky.cds.unistra.fr">
 <link rel="preload" href="./audio/00-welcome-v8.mp3" as="audio" type="audio/mpeg">
 <link rel="preload" href="./audio/01-antares.mp3" as="audio" type="audio/mpeg">
-<link rel="preload" href="https://aladin.cds.unistra.fr/AladinLite/api/v3/3.6.4/aladin.js" as="script" crossorigin>
+<link rel="preload" href="https://aladin.cds.unistra.fr/AladinLite/api/v3/3.6.4/aladin.js" as="script" fetchpriority="high">
+<link rel="preload" href="https://alasky.cds.unistra.fr/DSS/DSSColor/properties" as="fetch" crossorigin fetchpriority="high">
 <style>
 :root{
   --bg:#050505;
@@ -268,7 +269,8 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 </div>
 
 <script src="./config.js"></script>
-<script src="./finale.js?v=8.3.0"></script>
+<script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/3.6.4/aladin.js" charset="utf-8" fetchpriority="high"></script>
+<script src="./finale.js?v=8.4.0"></script>
 <script>
 const stars=[
   {letter:'A',name:'Antares',type:'Red supergiant · Scorpius',ra:247.3520833333,dec:-26.4319444444,coords:'16:29:24.5  −26:25:55',fact1:['DISTANCE','~550 light-years'],fact2:['SCALE','Enormous'],audio:'./audio/01-antares.mp3',duration:18816,arrivalFov:1.25},
@@ -284,7 +286,7 @@ let audioContext=null,musicSourceNode=null,musicGain=null,audioGeneration=0,curr
 let gateMotionFrame=0,arrivalZoomFrame=0,finaleFrame=0,viewInteractionVersion=0,prewarmTimer=0,prewarmGeneration=0,editorialFrame=0,editorialGeneration=0;
 let journeyClockPaused=false,journeyPauseStarted=0,journeyPausedTotal=0;
 const MUSIC_BASE=.19;
-const MUSIC_DUCK=.065;
+const MUSIC_DUCK=.075;
 const SURVEY_ID='https://alasky.cds.unistra.fr/DSS/DSSColor/';
 const ALADIN_VERSION='3.6.4';
 const ALADIN_SCRIPT_TIMEOUT=12000;
@@ -300,12 +302,13 @@ const OUTRO_DURATION=32448; // Supplied recording: unchanged.
 const FINALE_CAMERA_DURATION=44000;
 const NARRATION_ADVANCE_MS=2000;
 const INTRO_EDITORIALS=[
-  {start:700,end:4300,text:'The real sky, seen from Earth.'},
-  {start:5000,end:8450,text:'Five stars. Five real positions.'},
-  {start:9200,end:12600,text:'Light that travelled for years to reach us.'},
-  {start:13300,end:16600,text:'Each stop is anchored in the night sky.'},
-  {start:17300,end:20800,text:'We are not leaving Earth.'},
-  {start:21500,end:26350,text:'We are learning where to look.'}
+  // Timed against the actual welcome recording, not the camera animation.
+  {start:280,end:2750,text:'Welcome to ASTRA.'},
+  {start:3250,end:9100,text:'The real sky, seen from Earth.'},
+  {start:9630,end:12450,text:'In the next few minutes…'},
+  {start:13600,end:17950,text:'Five stars, at their true positions.'},
+  {start:18920,end:23200,text:'Tens of light-years away. Others, hundreds.'},
+  {start:23820,end:27350,text:"Look up. We’re leaving home."}
 ];
 let markersCatalog=null,finaleController=null;
 const narrationCache=new Map();
@@ -331,6 +334,10 @@ function clearAladinSourceIndex(){try{sessionStorage.removeItem(ALADIN_SOURCE_KE
 
 
 
+function initialGateFov(){
+  const w=Math.max(320,window.innerWidth||320),h=Math.max(480,window.innerHeight||480),aspect=w/h;
+  return aspect>=1.45?22:aspect>=.95?25:28;
+}
 function getTravelProfile(){
   const w=Math.max(320,window.innerWidth||320),h=Math.max(480,window.innerHeight||480),aspect=w/h;
   if(aspect>=1.45)return{cruise:48,end:3.35,maxStart:52,voiceAt:.70,arrivalScale:1};
@@ -496,10 +503,10 @@ function showNarrationRecovery(i,resolve){
     try{const buffer=await prepareNarration(i);await playBuffer(buffer,{duck:true,index:i});settle()}
     catch(_){showNarrationRecovery(i,resolve)}
   };
-  $('continueSilent').onclick=()=>{rampMusic(MUSIC_BASE,1100);settle()};
+  $('continueSilent').onclick=()=>{rampMusic(MUSIC_BASE,1700);settle()};
   requestAnimationFrame(()=>$('retryNarration').focus({preventScroll:true}));
 }
-function stopNarration({restoreMusic=true}={}){audioGeneration++;if(currentNarrationSource){try{currentNarrationSource.onended=null;currentNarrationSource.stop()}catch(_){}try{currentNarrationSource.disconnect()}catch(_){}}currentNarrationSource=null;currentNarrationIndex=null;if(restoreMusic)rampMusic(MUSIC_BASE,250);if(narrationResolve){const done=narrationResolve;narrationResolve=null;done()}}
+function stopNarration({restoreMusic=true}={}){audioGeneration++;if(currentNarrationSource){try{currentNarrationSource.onended=null;currentNarrationSource.stop()}catch(_){}try{currentNarrationSource.disconnect()}catch(_){}}currentNarrationSource=null;currentNarrationIndex=null;if(restoreMusic)rampMusic(MUSIC_BASE,1400);if(narrationResolve){const done=narrationResolve;narrationResolve=null;done()}}
 async function playBuffer(buffer,{duck=true,onPlay=null,index=null,offset=0}={}){
   const ctx=await resumeAudioContext();if(!ctx||!buffer)throw new Error('Audio unavailable');
   stopNarration();const generation=++audioGeneration;
@@ -508,11 +515,11 @@ async function playBuffer(buffer,{duck=true,onPlay=null,index=null,offset=0}={})
     const source=ctx.createBufferSource();source.buffer=buffer;source.connect(ctx.destination);currentNarrationSource=source;
     let settled=false;
     const cleanup=()=>{try{source.disconnect()}catch(_){}if(currentNarrationSource===source)currentNarrationSource=null;if(narrationResolve===resolve)narrationResolve=null};
-    const finish=()=>{if(settled||generation!==audioGeneration)return;settled=true;cleanup();rampMusic(MUSIC_BASE,1100);resolve()};
+    const finish=()=>{if(settled||generation!==audioGeneration)return;settled=true;cleanup();rampMusic(MUSIC_BASE,1700);resolve()};
     source.onended=finish;
-    if(duck)rampMusic(MUSIC_DUCK,250);
+    if(duck)rampMusic(MUSIC_DUCK,1400);
     try{onPlay?.();source.start(0,Math.max(0,Math.min(offset,Math.max(0,buffer.duration-.01))))}
-    catch(error){settled=true;cleanup();rampMusic(MUSIC_BASE,250);reject(error)}
+    catch(error){settled=true;cleanup();rampMusic(MUSIC_BASE,1400);reject(error)}
   });
 }
 async function playSpecial(src,onPlay){const buffer=await fetchAudioBuffer(src);return playBuffer(buffer,{duck:true,onPlay,index:null})}
@@ -591,8 +598,7 @@ function stopGateSkyMotion(){if(gateMotionFrame)cancelAnimationFrame(gateMotionF
 
 function startGateSkyMotion(){
   stopGateSkyMotion();if(!aladin||reducedMotion()||$('gate').classList.contains('off'))return;
-  const w=Math.max(320,innerWidth||320),h=Math.max(480,innerHeight||480),aspect=w/h;
-  const baseFov=aspect>=1.45?22:aspect>=.95?25:28;
+  const baseFov=initialGateFov();
   const start=journeyNow();let last=0;
   try{aladin.setProjection('TAN');aladin.setRotation(0);aladin.gotoRaDec(INITIAL_SKY_REGION.ra,INITIAL_SKY_REGION.dec);aladin.setFoV(baseFov)}catch(_){}
   function frame(now){
@@ -671,11 +677,14 @@ function flyTo(target,token,flightDuration,settleDuration,{onApproach=null,onCar
     cancelArrivalZoom();
     if(!aladin||token!==tourToken){resolve();return}
     const center=aladin.getRaDec(),profile=getTravelProfile();
-    const startRa=center[0],startDec=center[1],dRa=shortestDelta(startRa,target.ra),dDec=target.dec-startDec;
     const fovPair=(aladin.getFov&&aladin.getFov())||[profile.end,profile.end];
     const currentFov=Number(fovPair[0])||profile.end;
     const startFov=Math.min(profile.maxStart,Math.max(.55,currentFov));
     const cruise=profile.cruise,cardFov=profile.end,finalFov=arrivalFovFor(target);
+    // Mobile portrait aims at the final composed center from the start of the leg.
+    // The star therefore arrives naturally above center instead of being corrected later.
+    const arrivalCenter=mobileTargetCenter(target,finalFov);
+    const startRa=center[0],startDec=center[1],dRa=shortestDelta(startRa,arrivalCenter.ra),dDec=arrivalCenter.dec-startDec;
     const total=flightDuration+settleDuration,start=journeyNow();
     const originalVoicePoint=voiceAt==null?profile.voiceAt:voiceAt;
     // Advance by a fixed two seconds on EVERY flight, not by an arbitrary percentage.
@@ -715,17 +724,16 @@ function flyTo(target,token,flightDuration,settleDuration,{onApproach=null,onCar
         if(!cardShown){cardShown=true;settleInteractionVersion=viewInteractionVersion;try{onCard&&onCard()}catch(_){}}
         if(settleInteractionVersion!==null&&viewInteractionVersion!==settleInteractionVersion){resolve();return}
         const s=clamp01((elapsed-flightDuration)/Math.max(1,settleDuration));
-        // On mobile portrait, leave a little more headroom for the star marker label.
+        // Continue toward the same composed center used by the whole flight.
         fov=expLerp(cardFov,finalFov,smootherstep(s));
-        const settleCenter=mobileTargetCenter(target,fov);
-        ra=settleCenter.ra;dec=settleCenter.dec;
+        ra=arrivalCenter.ra;dec=arrivalCenter.dec;
       }
 
       try{aladin.gotoRaDec(ra,dec);aladin.setFoV(fov)}catch(_){}
       if(elapsed<total){requestAnimationFrame(frame)}else{
         if(!voiceStarted){voiceStarted=true;try{onApproach&&onApproach()}catch(_){}}
         if(!cardShown){cardShown=true;try{onCard&&onCard()}catch(_){}}
-        try{const finalCenter=mobileTargetCenter(target,finalFov);aladin.gotoRaDec(finalCenter.ra,finalCenter.dec);aladin.setFoV(finalFov)}catch(_){}
+        try{aladin.gotoRaDec(arrivalCenter.ra,arrivalCenter.dec);aladin.setFoV(finalFov)}catch(_){}
         resolve();
       }
     }
@@ -877,7 +885,7 @@ function loadScript(src,timeout=ALADIN_SCRIPT_TIMEOUT){
     const script=document.createElement('script');let settled=false;
     const finish=(error)=>{if(settled)return;settled=true;clearTimeout(timer);script.onload=null;script.onerror=null;if(error){script.remove();reject(error)}else resolve(script)};
     const timer=setTimeout(()=>finish(new Error(`Aladin script timed out: ${new URL(src).host}`)),timeout);
-    script.src=src;script.async=true;script.charset='utf-8';script.referrerPolicy='no-referrer-when-downgrade';
+    script.src=src;script.async=true;script.fetchPriority='high';script.charset='utf-8';script.referrerPolicy='no-referrer-when-downgrade';
     script.onload=()=>finish();script.onerror=()=>finish(new Error(`Aladin script failed: ${new URL(src).host}`));
     document.head.appendChild(script);
   })
@@ -907,12 +915,12 @@ async function init(){
     if(typeof AstraFinale==='undefined')throw new Error('The finale controller did not load');
     await loadAladinLibrary();
     await withTimeout(A.init,ALADIN_INIT_TIMEOUT,'Aladin engine initialization timed out');
-    aladin=A.aladin('#aladin-lite-div',{survey:SURVEY_ID,target:'17 45 40 -29 00 28',fov:34,projection:'TAN',cooFrame:'ICRS',showCooGrid:false,showCooLocation:false,showReticle:false,showFrame:false,showLayersControl:false,showProjectionControl:false,showFullscreenControl:false,showZoomControl:false,showGotoControl:false,showContextMenu:false});
+    aladin=A.aladin('#aladin-lite-div',{survey:SURVEY_ID,target:'17 45 40 -29 00 28',fov:initialGateFov(),projection:'TAN',cooFrame:'ICRS',showCooGrid:false,showCooLocation:false,showReticle:false,showFrame:false,showLayersControl:false,showProjectionControl:false,showFullscreenControl:false,showZoomControl:false,showGotoControl:false,showContextMenu:false});
     if(!aladin||typeof aladin.gotoRaDec!=='function'||typeof aladin.setFoV!=='function')throw new Error('Aladin returned an invalid viewer instance');
     addMarkers();skyReady=true;clearAladinSourceIndex();
     preloadNarrations();primeAudioWhenIdle();
     await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-    setTimeout(()=>{$('loader').classList.add('off');startGateSkyMotion()},120);
+    setTimeout(()=>{$('loader').classList.add('off');startGateSkyMotion();warmTarget(0,2600)},60);
   }catch(error){showLoaderError(error)}
 }
 
@@ -920,7 +928,7 @@ $('startBtn').addEventListener('click',startJourney);
 $('nextBtn').addEventListener('click',goNext);
 $('nextBtn').addEventListener('pointerenter',()=>warmTarget(currentIndex+1,0),{passive:true});
 $('nextBtn').addEventListener('touchstart',()=>warmTarget(currentIndex+1,0),{passive:true});
-$('replay').addEventListener('click',()=>{tourToken++;journeyStarting=false;legInProgress=false;finaleInProgress=false;clearNarrationRecovery();stopIntroEditorials();$('resumeJourney').classList.remove('on');$('startBtn').disabled=false;$('endcard').classList.remove('on');$('gate').classList.remove('off');$('topbar').classList.remove('on');clearProgress();setCoords('');currentIndex=-1;stopNarration();cancelArrivalZoom();hideFinaleOverlay();resetJourneyClock();try{aladin.setProjection('TAN');aladin.setRotation(0);aladin.gotoRaDec(INITIAL_SKY_REGION.ra,INITIAL_SKY_REGION.dec);aladin.setFoV(innerWidth/Math.max(1,innerHeight)>=1.45?22:innerWidth/Math.max(1,innerHeight)>=.95?25:28)}catch(_){}startGateSkyMotion()});
+$('replay').addEventListener('click',()=>{tourToken++;journeyStarting=false;legInProgress=false;finaleInProgress=false;clearNarrationRecovery();stopIntroEditorials();$('resumeJourney').classList.remove('on');$('startBtn').disabled=false;$('endcard').classList.remove('on');$('gate').classList.remove('off');$('topbar').classList.remove('on');clearProgress();setCoords('');currentIndex=-1;stopNarration();cancelArrivalZoom();hideFinaleOverlay();resetJourneyClock();try{aladin.setProjection('TAN');aladin.setRotation(0);aladin.gotoRaDec(INITIAL_SKY_REGION.ra,INITIAL_SKY_REGION.dec);aladin.setFoV(initialGateFov())}catch(_){}startGateSkyMotion()});
 const skyEl=$('aladin-lite-div');
 ['pointerdown','touchstart'].forEach(type=>skyEl.addEventListener(type,noteViewInteraction,{passive:true}));
 skyEl.addEventListener('wheel',noteViewInteraction,{passive:true});
