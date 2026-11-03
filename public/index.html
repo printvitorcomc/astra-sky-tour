@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Coordenadas no céu — Aladin Lite / DSS2</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #090b10;
+      color: #f5f7fb;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    .page {
+      min-height: 100%;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 12px;
+      padding: 16px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .sub {
+      color: #aeb7c4;
+      font-size: 13px;
+      line-height: 1.45;
+      max-width: 1100px;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    button {
+      appearance: none;
+      border: 1px solid #303846;
+      background: #151a22;
+      color: #f5f7fb;
+      padding: 8px 11px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    button:hover { background: #202733; }
+    button.primary {
+      background: #f5f7fb;
+      color: #0b0e13;
+      border-color: #f5f7fb;
+      font-weight: 650;
+    }
+    #aladin-lite-div {
+      width: 100%;
+      min-height: 620px;
+      height: calc(100vh - 190px);
+      border: 1px solid #2a303b;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #000;
+    }
+    .legend {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 6px 16px;
+      font-size: 12px;
+      color: #c7ced8;
+    }
+    .legend b { color: #fff; }
+    .source-note {
+      color: #8f99a7;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+    @media (max-width: 700px) {
+      #aladin-lite-div { min-height: 540px; height: 70vh; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div>
+      <h1>Visualização real das 5 coordenadas celestes</h1>
+      <div class="sub">
+        Fundo: Digital Sky Survey 2 (DSS2 Color), servido pelo CDS/Aladin.
+        Os marcadores usam exatamente as coordenadas RA/Dec fornecidas, convertidas para graus decimais.
+        Clique em um marcador ou use os botões para navegar.
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="primary" onclick="overview()">Visão geral</button>
+      <button onclick="goTo(247.3520833333, -26.4319444444, 'Antares')">1 · Antares</button>
+      <button onclick="goTo(101.2870833333, -16.7161111111, 'Sirius')">2 · Sirius</button>
+      <button onclick="goTo(296.5650000000, 10.6133333333, 'Tarazed')">3 · Tarazed</button>
+      <button onclick="goTo(78.6345833333, -8.2016666667, 'Rigel')">4 · Rigel</button>
+      <button onclick="goTo(68.9800000000, 16.5091666667, 'Aldebaran')">5 · Aldebaran</button>
+    </div>
+
+    <div id="aladin-lite-div"></div>
+
+    <div>
+      <div class="legend">
+        <div><b>1 · Antares</b> — 16:29:24.5, −26:25:55</div>
+        <div><b>2 · Sirius</b> — 06:45:08.9, −16:42:58</div>
+        <div><b>3 · Tarazed</b> — 19:46:15.6, +10:36:48</div>
+        <div><b>4 · Rigel</b> — 05:14:32.3, −08:12:06</div>
+        <div><b>5 · Aldebaran</b> — 04:35:55.2, +16:30:33</div>
+      </div>
+      <div class="source-note">
+        Este arquivo não contém uma imagem gerada. Ele carrega, em tempo real, mosaicos astronômicos HiPS/DSS2
+        do Centre de Données astronomiques de Strasbourg (CDS) por meio do Aladin Lite.
+        É necessário estar conectado à internet ao abrir o arquivo.
+      </div>
+    </div>
+  </div>
+
+  <script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js" charset="utf-8"></script>
+  <script>
+    let aladin;
+
+    const points = [
+      {name: "1 · Antares",    ra: 247.3520833333, dec: -26.4319444444, sexa: "16:29:24.5  −26:25:55"},
+      {name: "2 · Sirius",     ra: 101.2870833333, dec: -16.7161111111, sexa: "06:45:08.9  −16:42:58"},
+      {name: "3 · Tarazed",    ra: 296.5650000000, dec:  10.6133333333, sexa: "19:46:15.6  +10:36:48"},
+      {name: "4 · Rigel",      ra:  78.6345833333, dec:  -8.2016666667, sexa: "05:14:32.3  −08:12:06"},
+      {name: "5 · Aldebaran",  ra:  68.9800000000, dec:  16.5091666667, sexa: "04:35:55.2  +16:30:33"}
+    ];
+
+    A.init.then(() => {
+      aladin = A.aladin("#aladin-lite-div", {
+        survey: "P/DSS2/color",
+        target: "12 00 00 +00 00 00",
+        fov: 180,
+        showReticle: false,
+        showFrame: true,
+        showLayersControl: true,
+        showFullscreenControl: true,
+        showZoomControl: true,
+        showGotoControl: true,
+        showContextMenu: true
+      });
+
+      aladin.setProjection("AIT");
+
+      const cat = A.catalog({
+        name: "Coordenadas fornecidas",
+        sourceSize: 18,
+        shape: "cross"
+      });
+      aladin.addCatalog(cat);
+
+      const markers = points.map(p =>
+        A.marker(p.ra, p.dec, {
+          popupTitle: p.name,
+          popupDesc:
+            "<b>RA/Dec:</b> " + p.sexa +
+            "<br><b>RA decimal:</b> " + p.ra.toFixed(7) + "°" +
+            "<br><b>Dec decimal:</b> " + p.dec.toFixed(7) + "°"
+        })
+      );
+      cat.addSources(markers);
+    });
+
+    function goTo(ra, dec, name) {
+      if (!aladin) return;
+      aladin.setProjection("TAN");
+      aladin.gotoRaDec(ra, dec);
+      aladin.setFov(3);
+    }
+
+    function overview() {
+      if (!aladin) return;
+      aladin.setProjection("AIT");
+      aladin.gotoRaDec(180, 0);
+      aladin.setFov(180);
+    }
+  </script>
+</body>
+</html>

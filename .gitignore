@@ -1,0 +1,27 @@
+# Credentials and local configuration
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Local tools and generated files
+node_modules/
+.wrangler/
+.netlify/
+.vercel/
+dist/
+coverage/
+test-results/
+playwright-report/
+*.log
+*.zip
+.DS_Store
+Thumbs.db
+
+# Optional music is deliberately excluded from every public commit.
+public/audio/interstellar.mp3
+public/audio/soundtrack.*
