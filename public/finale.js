@@ -1,4 +1,4 @@
-/* ASTRA v8.4 — in-place finale refinement. No renderer or imagery replacement.
+/* ASTRA v8.5 — in-place finale refinement. No renderer or imagery replacement.
  * Aladin Lite remains the sole sky renderer. Only its sky surface is transformed;
  * every label, hit target, credit and piece of interface text stays in screen space.
  */
@@ -194,17 +194,14 @@
       this.reduced=reduced;this.duration=reduced?Math.min(12000,duration):duration;this.hold=0;
       this.isCurrent=isCurrent;
       const size=this.viewer.getSize(),center=this.viewer.getRaDec(),fov=this.viewer.getFov()[0];
-      try{
-        const image=this.viewer.getViewDataURL('image/png');
-        if(typeof image==='string'&&image.startsWith('data:image/')){this.carry.src=image;this.carry.hidden=false;this.carry.style.opacity='1'}
-      }catch(_){/* The matched narrow-field AIT view is also safe without a carry frame. */}
+      // v8.5: the carry frame is captured while the last stop is already stationary.
+      // Avoiding a synchronous PNG readback on Finish removes a measurable click-time stall.
+      if(typeof this.carryImage==='string'&&this.carryImage.startsWith('data:image/')){
+        this.carry.src=this.carryImage;this.carry.hidden=false;this.carry.style.opacity='1';
+      }else{this.carry.hidden=true;this.carry.removeAttribute('src')}
       this.markers?.hide?.();
       this.app.classList.add('finale-mode');this.ui.classList.remove('on','interactive');
       this.ui.inert=true;this.ui.setAttribute('aria-hidden','true');
-      this.measure();
-      this.start={center,fov:clamp(fov*this.layout.side/Math.max(1,size[0]),.01,359)};
-      this.viewer.setProjection('AIT');this.viewer.setRotation(0);
-      this.buildLabels();this.applyCamera(reduced?1:0);
       this.listen(window,'resize',this.resizeListener,{passive:true});
       this.listen(document,'visibilitychange',()=>{this.lastTime=0});
       this.bindGestures();
@@ -218,7 +215,10 @@
           const t=clamp(this.elapsed/this.duration,0,1);
           if(!reduced)this.applyCamera(t);
           if(!this.carry.hidden){
-            const alpha=1-smooth((this.elapsed-180)/(reduced?1400:1800));
+            // The quintic camera curve barely moves during these first seconds.
+            // Hold the real narrow-field frame while AIT resizes/redraws, then dissolve it.
+            const holdMs=reduced?260:650,fadeMs=reduced?1150:2700;
+            const alpha=1-smooth((this.elapsed-holdMs)/fadeMs);
             this.carry.style.opacity=String(alpha);
             if(alpha===0){this.carry.hidden=true;this.carry.removeAttribute('src')}
           }
@@ -235,8 +235,22 @@
             const done=this.resolve;this.resolve=null;done?.();
           }
         };
-        // Give Aladin's ResizeObserver a render turn under the carried real frame.
-        this.frame=requestAnimationFrame(()=>{this.frame=requestAnimationFrame(tick)});
+        // Spread resize, projection switch and first camera write across separate
+        // frames. The carried image masks the renderer warm-up without freezing UI.
+        this.frame=requestAnimationFrame(()=>{
+          if(this.destroyed||!isCurrent()){this.cancel();return}
+          this.measure();
+          this.start={center,fov:clamp(fov*this.layout.side/Math.max(1,size[0]),.01,359)};
+          this.frame=requestAnimationFrame(()=>{
+            if(this.destroyed||!isCurrent()){this.cancel();return}
+            try{this.viewer.setProjection('AIT');this.viewer.setRotation(0)}catch(_){}
+            this.buildLabels();this.applyCamera(reduced?1:0);
+            this.frame=requestAnimationFrame(()=>{
+              this.lastTime=0;
+              this.frame=requestAnimationFrame(tick);
+            });
+          });
+        });
       });
     }
     enableExploration(){

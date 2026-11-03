@@ -66,7 +66,7 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .travel-dot{width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 12px rgba(255,255,255,.65);animation:travelPulse 1.8s ease-in-out infinite}
 @keyframes travelPulse{0%,100%{opacity:.32}50%{opacity:1}}
 
-.sky-editorial{position:absolute;z-index:38;left:50%;top:42%;transform:translate(-50%,-50%);width:min(86vw,680px);text-align:center;font-size:clamp(18px,3vw,30px);font-weight:500;letter-spacing:-.025em;line-height:1.18;color:rgba(255,255,255,.96);text-shadow:0 3px 28px rgba(0,0,0,.92);opacity:0;pointer-events:none;transition:opacity .8s ease}.sky-editorial.on{opacity:1}
+.sky-editorial{position:absolute;z-index:38;left:50%;top:42%;transform:translate(-50%,-50%);width:min(86vw,680px);text-align:center;font-size:clamp(18px,3vw,30px);font-weight:500;letter-spacing:-.025em;line-height:1.18;color:rgba(255,255,255,.96);text-shadow:0 3px 28px rgba(0,0,0,.92);opacity:0;pointer-events:none;transition:opacity .34s cubic-bezier(.2,.72,.2,1)}.sky-editorial.on{opacity:1}
 .audio-recovery,.resume-journey{position:absolute;z-index:75;left:50%;bottom:max(24px,calc(20px + env(safe-area-inset-bottom)));transform:translateX(-50%);width:min(92vw,520px);padding:16px;border:1px solid var(--line);background:rgba(5,5,5,.94);backdrop-filter:blur(20px);border-radius:16px;display:none}.audio-recovery.on,.resume-journey.on{display:block}.audio-recovery p,.resume-journey p{margin:0 0 12px;font-size:13px;line-height:1.4;color:var(--muted)}.audio-actions{display:flex;gap:8px;flex-wrap:wrap}.audio-actions button,.resume-journey button{border:1px solid var(--line);background:#fff;color:#050505;border-radius:999px;padding:10px 14px;font-weight:650;cursor:pointer}.audio-actions button.secondary{background:transparent;color:var(--text)}
 
 
@@ -270,7 +270,7 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 
 <script src="./config.js"></script>
 <script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/3.6.4/aladin.js" charset="utf-8" fetchpriority="high"></script>
-<script src="./finale.js?v=8.4.0"></script>
+<script src="./finale.js?v=8.5.0"></script>
 <script>
 const stars=[
   {letter:'A',name:'Antares',type:'Red supergiant · Scorpius',ra:247.3520833333,dec:-26.4319444444,coords:'16:29:24.5  −26:25:55',fact1:['DISTANCE','~550 light-years'],fact2:['SCALE','Enormous'],audio:'./audio/01-antares.mp3',duration:18816,arrivalFov:1.25},
@@ -302,15 +302,20 @@ const OUTRO_DURATION=32448; // Supplied recording: unchanged.
 const FINALE_CAMERA_DURATION=44000;
 const NARRATION_ADVANCE_MS=2000;
 const INTRO_EDITORIALS=[
-  // Timed against the actual welcome recording, not the camera animation.
-  {start:280,end:2750,text:'Welcome to ASTRA.'},
-  {start:3250,end:9100,text:'The real sky, seen from Earth.'},
-  {start:9630,end:12450,text:'In the next few minutes…'},
-  {start:13600,end:17950,text:'Five stars, at their true positions.'},
-  {start:18920,end:23200,text:'Tens of light-years away. Others, hundreds.'},
-  {start:23820,end:27350,text:"Look up. We’re leaving home."}
+  // Literal excerpts from 00-welcome-v8.mp3. Windows are aligned to the
+  // recording's detected speech/silence boundaries, with a tiny visual lead/tail for the fade.
+  {start:180,end:2940,text:'Welcome to ASTRA.'},
+  {start:3120,end:9320,text:'We begin here, on Earth, looking outward.'},
+  {start:9500,end:12720,text:'In the next few minutes,'},
+  {start:13420,end:18130,text:"we'll cross the real night sky and visit five stars at their true positions."},
+  {start:18720,end:21760,text:'Some are tens of light-years away.'},
+  {start:22300,end:23420,text:'Others, hundreds.'},
+  {start:23620,end:25520,text:'Look up.'},
+  {start:26120,end:27440,text:"We're leaving home."}
 ];
 let markersCatalog=null,finaleController=null;
+let finaleCarryDataUrl=null,finalePreparationGeneration=0;
+let finalePrewarmTimers=[];
 const narrationCache=new Map();
 const decodedAudioCache=new Map();
 const audioBytesCache=new Map();
@@ -561,6 +566,84 @@ function warmTarget(i,delay=0){
   },delay);
 }
 
+function stopFinalePrewarm({resetSurface=false}={}){
+  finalePreparationGeneration++;
+  finalePrewarmTimers.forEach(id=>clearTimeout(id));
+  finalePrewarmTimers=[];
+  if(resetSurface){
+    const el=$('aladin-preload-div');
+    if(el){el.style.width='';el.style.height='';el.style.left='';el.style.top=''}
+  }
+}
+function clearFinalePreparation(){
+  stopFinalePrewarm({resetSurface:true});
+  finaleCarryDataUrl=null;
+}
+function finalePrewarmLayout(){
+  if(!window.AstraFinale||!aladin)return null;
+  const app=$('skyStage')?.parentElement?.getBoundingClientRect();
+  if(!app)return null;
+  const card=$('endcard');
+  let cardWidth=0,cardHeight=0;
+  if(card){
+    card.classList.add('measure');
+    const rect=card.getBoundingClientRect();card.classList.remove('measure');
+    cardWidth=rect.width;cardHeight=rect.height;
+  }
+  return AstraFinale.getLayout(app.width,app.height,cardWidth,cardHeight);
+}
+function warmFinaleSky(token,delay=0){
+  if(!skyReady||token!==tourToken||!aladin||!window.AstraFinale)return;
+  const conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+  if(conn&&conn.saveData)return;
+  const generation=++finalePreparationGeneration;
+  // The last destination no longer needs destination prewarming. Repurpose the
+  // hidden Aladin viewer to populate the browser cache with the exact finale route.
+  prewarmGeneration++;
+  if(prewarmTimer)clearTimeout(prewarmTimer);
+  const kickoff=setTimeout(()=>{
+    if(generation!==finalePreparationGeneration||token!==tourToken)return;
+    const pre=ensureSkyPreloader(stars.length-1);if(!pre)return;
+    const layout=finalePrewarmLayout();if(!layout)return;
+    const s=stars[stars.length-1],finalFov=arrivalFovFor(s),arrival=mobileTargetCenter(s,finalFov);
+    const mainSize=aladin.getSize?.()||[Math.max(1,innerWidth),Math.max(1,innerHeight)];
+    const start={center:[arrival.ra,arrival.dec],fov:Math.max(.01,Math.min(359,finalFov*layout.side/Math.max(1,mainSize[0])))};
+    const preloadEl=$('aladin-preload-div');
+    if(preloadEl){
+      const preloadSide=Math.round(Math.min(1400,Math.max(720,layout.side*.78)));
+      preloadEl.style.width=`${preloadSide}px`;preloadEl.style.height=`${preloadSide}px`;
+      preloadEl.style.left=`-${preloadSide+80}px`;preloadEl.style.top='0';
+    }
+    const samples=[.06,.14,.23,.34,.46,.59,.72,.86,1];
+    const offsets=[0,620,1320,2110,3000,3990,5070,6230,7480];
+    try{pre.setProjection('AIT');pre.setRotation?.(0)}catch(_){}
+    samples.forEach((t,index)=>{
+      const id=setTimeout(()=>{
+        if(generation!==finalePreparationGeneration||token!==tourToken)return;
+        try{
+          const state=AstraFinale.sampleCamera(t,start,layout);
+          pre.gotoRaDec(...state.center);pre.setFoV(state.fov);
+        }catch(_){}
+      },offsets[index]);
+      finalePrewarmTimers.push(id);
+    });
+  },delay);
+  finalePrewarmTimers.push(kickoff);
+}
+function prepareFinaleCarry(token){
+  if(finaleCarryDataUrl||!aladin||token!==tourToken)return;
+  const capture=()=>{
+    if(finaleCarryDataUrl||!aladin||token!==tourToken||currentIndex!==stars.length-1)return;
+    try{
+      const image=aladin.getViewDataURL('image/png');
+      if(typeof image==='string'&&image.startsWith('data:image/'))finaleCarryDataUrl=image;
+    }catch(_){}
+  };
+  // Capture while the last stop is stationary, rather than on the Finish click.
+  if('requestIdleCallback' in window)requestIdleCallback(capture,{timeout:480});
+  else setTimeout(capture,120);
+}
+
 function cancelArrivalZoom(){
   if(arrivalZoomFrame)cancelAnimationFrame(arrivalZoomFrame);
   arrivalZoomFrame=0;
@@ -769,6 +852,7 @@ async function arriveAt(i,options={}){
     const showCard=()=>{
       if(token!==tourToken)return;
       setTravel(false);renderStar(i);
+      if(i===stars.length-1){prepareSpecial('./audio/06-this-is-astra.mp3');warmFinaleSky(token,1100)}
     };
 
     await flyTo(s,token,flightDuration,settleDuration,{
@@ -777,6 +861,7 @@ async function arriveAt(i,options={}){
       curveMode:initialLeg?'standard':'interstar'
     });
     if(token!==tourToken)return;
+    if(i===stars.length-1)prepareFinaleCarry(token);
     if(!narrationStarted)startVoice();
     if(narrationPromise)await narrationPromise;
     if(token!==tourToken)return;
@@ -803,7 +888,7 @@ function animateFinale(token,duration=FINALE_CAMERA_DURATION){
   if(!aladin||token!==tourToken)return Promise.resolve();
   $('finaleOverlay').classList.add('on');
   finaleController=new AstraFinale.Controller({
-    viewer:aladin,stage:$('skyStage'),markers:markersCatalog,stars,
+    viewer:aladin,stage:$('skyStage'),markers:markersCatalog,stars,carryImage:finaleCarryDataUrl,
     onTravel:text=>setTravel(true,text),
     onTitle:()=>$('finaleBrand').classList.add('on'),
     onTitleOut:()=>$('finaleBrand').classList.add('out')
@@ -821,16 +906,22 @@ async function finishTour(){
     $('topbar').classList.remove('on');
     setTravel(true,'Entering the final orbit');setMusicLevel(MUSIC_BASE);
 
-    let beginFinale,finaleStarted=false;
+    stopFinalePrewarm();
+    let beginFinale,queueFinale,finaleStarted=false,finaleQueued=false;
     const finalePromise=new Promise(resolve=>{
       beginFinale=()=>{
         if(finaleStarted)return;
         finaleStarted=true;
         animateFinale(token,FINALE_CAMERA_DURATION).then(resolve).catch(error=>{console.error('[ASTRA] Finale animation failed',error);resolve()});
       };
+      queueFinale=()=>{
+        if(finaleQueued||finaleStarted)return;finaleQueued=true;
+        // Do not put the AIT resize/projection work in the Finish-button event stack.
+        requestAnimationFrame(()=>requestAnimationFrame(beginFinale));
+      };
     });
-    const outroPromise=playSpecial('./audio/06-this-is-astra.mp3',beginFinale).catch(error=>{console.warn('[ASTRA] Outro narration unavailable',error);beginFinale()});
-    finaleTimers.push(setTimeout(beginFinale,700));
+    const outroPromise=playSpecial('./audio/06-this-is-astra.mp3',queueFinale).catch(error=>{console.warn('[ASTRA] Outro narration unavailable',error);queueFinale()});
+    finaleTimers.push(setTimeout(queueFinale,850));
 
     await Promise.all([outroPromise,finalePromise]);
     if(token!==tourToken)return;
@@ -844,7 +935,7 @@ async function finishTour(){
 async function startJourney(){
   if(!skyReady||journeyStarting)return;
   journeyStarting=true;legInProgress=false;finaleInProgress=false;$('startBtn').disabled=true;
-  clearNarrationRecovery();$('resumeJourney').classList.remove('on');resetJourneyClock();stopIntroEditorials();
+  clearNarrationRecovery();$('resumeJourney').classList.remove('on');resetJourneyClock();stopIntroEditorials();clearFinalePreparation();
   // Run both browser-gated audio calls before the first await so iPhone/Safari
   // receives them inside the Begin-button activation stack.
   const audioUnlock=unlockAudioFromGesture({playMusic:true});
@@ -928,7 +1019,7 @@ $('startBtn').addEventListener('click',startJourney);
 $('nextBtn').addEventListener('click',goNext);
 $('nextBtn').addEventListener('pointerenter',()=>warmTarget(currentIndex+1,0),{passive:true});
 $('nextBtn').addEventListener('touchstart',()=>warmTarget(currentIndex+1,0),{passive:true});
-$('replay').addEventListener('click',()=>{tourToken++;journeyStarting=false;legInProgress=false;finaleInProgress=false;clearNarrationRecovery();stopIntroEditorials();$('resumeJourney').classList.remove('on');$('startBtn').disabled=false;$('endcard').classList.remove('on');$('gate').classList.remove('off');$('topbar').classList.remove('on');clearProgress();setCoords('');currentIndex=-1;stopNarration();cancelArrivalZoom();hideFinaleOverlay();resetJourneyClock();try{aladin.setProjection('TAN');aladin.setRotation(0);aladin.gotoRaDec(INITIAL_SKY_REGION.ra,INITIAL_SKY_REGION.dec);aladin.setFoV(initialGateFov())}catch(_){}startGateSkyMotion()});
+$('replay').addEventListener('click',()=>{tourToken++;journeyStarting=false;legInProgress=false;finaleInProgress=false;clearNarrationRecovery();stopIntroEditorials();clearFinalePreparation();$('resumeJourney').classList.remove('on');$('startBtn').disabled=false;$('endcard').classList.remove('on');$('gate').classList.remove('off');$('topbar').classList.remove('on');clearProgress();setCoords('');currentIndex=-1;stopNarration();cancelArrivalZoom();hideFinaleOverlay();resetJourneyClock();try{aladin.setProjection('TAN');aladin.setRotation(0);aladin.gotoRaDec(INITIAL_SKY_REGION.ra,INITIAL_SKY_REGION.dec);aladin.setFoV(initialGateFov())}catch(_){}startGateSkyMotion()});
 const skyEl=$('aladin-lite-div');
 ['pointerdown','touchstart'].forEach(type=>skyEl.addEventListener(type,noteViewInteraction,{passive:true}));
 skyEl.addEventListener('wheel',noteViewInteraction,{passive:true});
