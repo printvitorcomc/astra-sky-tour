@@ -208,7 +208,7 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 
   <div class="travel" id="travel"><span class="travel-dot"></span><span id="travelText">Travelling</span></div>
 
-  <div class="sky-editorial" id="skyEditorial" aria-live="polite" aria-atomic="true">The real sky, seen from Earth.</div>
+  <div class="sky-editorial" id="skyEditorial" aria-live="polite" aria-atomic="true">This is the real sky, seen from Earth.</div>
 
   <section class="audio-recovery" id="audioRecovery" role="alertdialog" aria-modal="true" aria-labelledby="audioRecoveryText">
     <p id="audioRecoveryText">The narration could not be loaded.</p>
@@ -270,7 +270,7 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 
 <script src="./config.js"></script>
 <script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/3.6.4/aladin.js" charset="utf-8" fetchpriority="high"></script>
-<script src="./finale.js?v=8.5.0"></script>
+<script src="./finale.js?v=8.6.0"></script>
 <script>
 const stars=[
   {letter:'A',name:'Antares',type:'Red supergiant · Scorpius',ra:247.3520833333,dec:-26.4319444444,coords:'16:29:24.5  −26:25:55',fact1:['DISTANCE','~550 light-years'],fact2:['SCALE','Enormous'],audio:'./audio/01-antares.mp3',duration:18816,arrivalFov:1.25},
@@ -302,16 +302,15 @@ const OUTRO_DURATION=32448; // Supplied recording: unchanged.
 const FINALE_CAMERA_DURATION=44000;
 const NARRATION_ADVANCE_MS=2000;
 const INTRO_EDITORIALS=[
-  // Literal excerpts from 00-welcome-v8.mp3. Windows are aligned to the
-  // recording's detected speech/silence boundaries, with a tiny visual lead/tail for the fade.
-  {start:180,end:2940,text:'Welcome to ASTRA.'},
-  {start:3120,end:9320,text:'We begin here, on Earth, looking outward.'},
-  {start:9500,end:12720,text:'In the next few minutes,'},
-  {start:13420,end:18130,text:"we'll cross the real night sky and visit five stars at their true positions."},
-  {start:18720,end:21760,text:'Some are tens of light-years away.'},
-  {start:22300,end:23420,text:'Others, hundreds.'},
-  {start:23620,end:25520,text:'Look up.'},
-  {start:26120,end:27440,text:"We're leaving home."}
+  // v8.6: verbatim wording from the supplied 00-welcome-v8.mp3.
+  // Timings follow the recording's detected speech/silence boundaries; the audio itself is untouched.
+  {start:120,end:4740,text:'This is the real sky, seen from Earth.'},
+  {start:5380,end:9280,text:'These images come from astronomical observations,'},
+  {start:9440,end:12670,text:'brought together in a map of the heavens.'},
+  {start:13380,end:18120,text:'Across this sky, five stars will guide our journey.'},
+  {start:18700,end:21760,text:'Each one reveals another letter.'},
+  {start:22280,end:25460,text:'Together, they reveal a name.'},
+  {start:26080,end:27320,text:'Let’s begin.'}
 ];
 let markersCatalog=null,finaleController=null;
 let finaleCarryDataUrl=null,finalePreparationGeneration=0;
