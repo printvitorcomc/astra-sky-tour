@@ -1,12 +1,36 @@
-# ASTRA — recovered v8.6
+![ASTRA: a five-stop journey through the real sky](docs/screenshot.webp)
 
-Recovered source snapshot from `ASTRA-v8.6-NETLIFY.zip`.
-This commit was created during the archive import, not during original development.
+# ASTRA
 
-Run `python3 -m http.server 8080 --directory public` and open
-http://localhost:8080. Real sky rendering requires internet access and a compatible
-WebGL browser. Historical builds retain their original behavior and known bugs.
+A narrated journey through five real stars: **Antares → Sirius → Tarazed → Rigel → Aldebaran**.
+Real astronomical imagery, cinematic camera movement, and a mobile-first interface.
 
-The film soundtrack is excluded. Static narration and runtime source are preserved.
-For narrated builds, optional licensed music can be configured in `public/config.js`.
-Auxiliary QA captures and duplicate scratch scripts are omitted.
+**[Open ASTRA](https://astra.renoviolab.com.br)**
+
+- Aladin Lite 3.6.4 + DSS2 survey imagery. Internet and WebGL 2 required.
+- Seven pre-generated narration files. No runtime TTS, API keys, or backend.
+- Final release: **v8.6.1**. Recovered history: **23 snapshots**, starting with the original coordinate map.
+
+## Run locally
+
+```sh
+python3 -m http.server 8080 --directory public
+```
+
+Open http://localhost:8080, then select **Begin the journey** to enable audio.
+
+## Deploy
+
+**Cloudflare Workers:** run `npx wrangler@4 deploy` from the repository root.
+`wrangler.jsonc` serves only `public/`.
+
+**Cloudflare Pages:** connect this repository, use `main`, framework **None**,
+build command `exit 0`, and output directory `public`. No environment variables.
+
+Music is optional. The supplied film soundtrack is excluded from public history;
+add your own licensed file via [the audio setup](docs/AUDIO.md).
+
+[History and provenance](docs/HISTORY.md) · [Validation](docs/VALIDATION.md) · [Credits](docs/CREDITS.md)
+
+Independent, unofficial experiment. Concept, product direction and QA by Victor
+Alexandre; implementation produced and refined with AI. Not affiliated with OpenAI.
