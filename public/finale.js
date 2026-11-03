@@ -1,4 +1,4 @@
-/* ASTRA v8.1 — in-place finale refinement. No renderer or imagery replacement.
+/* ASTRA v8.3 — in-place finale refinement. No renderer or imagery replacement.
  * Aladin Lite remains the sole sky renderer. Only its sky surface is transformed;
  * every label, hit target, credit and piece of interface text stays in screen space.
  */
@@ -57,7 +57,9 @@
     const labelBottom=Math.max(top+120,height-cardHeight-(width>=720?32:0)-18);
     const labelBounds={left:gutter,top,right:width-gutter,bottom:Math.min(height-gutter,labelBottom)};
     const bw=mapBounds.right-mapBounds.left,bh=mapBounds.bottom-mapBounds.top;
-    const major=Math.min(portrait?bh:bw,portrait?bw*2:bh*2)*.94;
+    // Cover the viewport instead of fitting fully inside it. This removes the
+    // black bars on both desktop and portrait mobile while keeping the same finale.
+    const major=Math.ceil(Math.max(bw,bh*2,portrait?bw*2:0)*1.02);
     const cx=width/2,cy=height/2;
     // A square with side >= viewport diagonal covers every rectangular corner
     // through a full rotation. Extra overscan protects browser rounding/resize.
@@ -248,7 +250,7 @@
       const visible=[];
       for(const item of this.labelItems){
         const xy=this.viewer.world2pix(item.star.ra,item.star.dec);
-        const p=xy&&toScreen(xy,this.state),b=this.layout.bounds;
+        const p=xy&&toScreen(xy,this.state),b=this.layout.mapBounds;
         const show=p&&Number.isFinite(p[0])&&Number.isFinite(p[1])&&p[0]>=b.left&&p[0]<=b.right&&p[1]>=b.top&&p[1]<=b.bottom;
         item.button.hidden=!show;item.dot.hidden=!show;item.line.style.display=show?'':'none';
         if(!show)continue;
@@ -331,7 +333,8 @@
         if(!this.exploring)return;
         event.preventDefault();this.hideDetails(false);
         const unit=event.deltaMode===1?16:event.deltaMode===2?this.layout.height:1;
-        this.zoom(Math.exp(clamp(event.deltaY*unit,-120,120)*.002),this.localPoint(event));
+        const normalized=clamp(event.deltaY*unit,-72,72);
+        this.zoom(Math.exp(normalized*.0009),this.localPoint(event));
       },{passive:false});
       this.listen(el,'keydown',event=>{
         if(!this.exploring)return;

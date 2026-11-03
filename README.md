@@ -1,6 +1,6 @@
-# ASTRA — recovered v8.2
+# ASTRA — recovered v8.3
 
-Recovered source snapshot from `ASTRA-v8.2-NETLIFY-FINAL.zip`.
+Recovered source snapshot from `ASTRA-v8.3-NETLIFY.zip`.
 This commit was created during the archive import, not during original development.
 
 Run `python3 -m http.server 8080 --directory public` and open
