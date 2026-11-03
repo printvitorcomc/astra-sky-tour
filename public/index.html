@@ -22,11 +22,12 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .app{position:relative;width:100%;height:100svh;min-height:560px;background:#000;overflow:hidden}
 #aladin-lite-div{position:absolute;inset:0;width:100%;height:100%;background:#000}
 #aladin-lite-div:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.18),transparent 24%,transparent 72%,rgba(0,0,0,.30));z-index:3}
+#aladin-lite-div .aladin-location,#aladin-lite-div .aladin-coo-location,#aladin-lite-div .aladin-cooLocation,#aladin-lite-div .aladin-location-text{display:none!important}
 
-.topbar{position:absolute;z-index:30;top:max(22px,env(safe-area-inset-top));left:22px;right:22px;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;pointer-events:none}
-.brand{font-size:14px;font-weight:700;letter-spacing:-.01em;color:var(--white);white-space:nowrap}
-.brand span{color:inherit}
-.progress{display:flex;align-items:center;gap:16px;background:none;border:0;padding:0}
+.topbar{position:absolute;z-index:30;top:max(22px,env(safe-area-inset-top));left:22px;right:22px;display:flex;align-items:flex-start;justify-content:space-between;gap:24px;pointer-events:none;opacity:0;transform:translateY(-5px);transition:opacity .45s ease,transform .45s ease}
+.topbar.on{opacity:1;transform:translateY(0)}
+.progress{display:flex;align-items:center;gap:16px;background:none;border:0;padding:0;flex:0 0 auto}
+.coords{margin-left:auto;max-width:min(48vw,420px);font-variant-numeric:tabular-nums;font-size:11px;font-weight:500;letter-spacing:.075em;line-height:1.35;text-align:right;color:rgba(255,255,255,.66);white-space:nowrap;text-shadow:0 1px 12px rgba(0,0,0,.8)}
 .letter{position:relative;min-width:13px;height:22px;display:grid;place-items:center;font-size:12px;font-weight:600;color:rgba(255,255,255,.34);transition:color .35s ease}
 .letter:after{content:"";position:absolute;left:0;right:0;bottom:-5px;height:1px;background:transparent;transition:background .35s ease,transform .35s ease;transform:scaleX(.3)}
 .letter.active{color:#fff}
@@ -52,6 +53,14 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .travel{position:absolute;z-index:34;left:22px;bottom:max(26px,calc(18px + env(safe-area-inset-bottom)));display:none;align-items:center;gap:10px;color:rgba(255,255,255,.82);font-size:12px;font-weight:500;letter-spacing:.01em;pointer-events:none}
 .travel.on{display:flex}
 .travel-dot{width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 12px rgba(255,255,255,.65);animation:travelPulse 1.8s ease-in-out infinite}
+.earth-origin{position:absolute;z-index:38;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;place-items:center;gap:13px;opacity:0;pointer-events:none;transition:opacity 1.1s ease,transform 1.6s cubic-bezier(.2,.75,.2,1)}
+.earth-origin.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.earth-origin.leaving{opacity:0;transform:translate(-50%,-50%) scale(.82)}
+.earth-ring{width:54px;height:54px;border:1px solid rgba(255,255,255,.56);border-radius:50%;position:relative;box-shadow:0 0 34px rgba(255,255,255,.08)}
+.earth-ring:before,.earth-ring:after{content:"";position:absolute;background:rgba(255,255,255,.56)}
+.earth-ring:before{width:76px;height:1px;left:50%;top:50%;transform:translate(-50%,-50%)}
+.earth-ring:after{width:1px;height:76px;left:50%;top:50%;transform:translate(-50%,-50%)}
+.earth-label{font-size:11px;font-weight:650;letter-spacing:.22em;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.9)}
 @keyframes travelPulse{0%,100%{opacity:.32}50%{opacity:1}}
 
 #speedFx{position:absolute;z-index:24;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;transition:opacity .45s ease;mix-blend-mode:screen}
@@ -70,12 +79,10 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .endcard p{margin:0;color:var(--muted);font-size:14px;line-height:1.5;max-width:540px}
 .replay{margin-top:20px;border:1px solid var(--line);background:transparent;color:var(--text);border-radius:999px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer}
 
-.gate{position:absolute;z-index:60;inset:0;display:flex;align-items:flex-end;background:#050505;padding:28px 22px calc(32px + env(safe-area-inset-bottom));text-align:left;transition:opacity .65s ease;overflow:hidden}
-.gate:before{content:"";position:absolute;inset:-20%;opacity:.58;background-image:radial-gradient(circle,rgba(255,255,255,.78) 0 1px,transparent 1.4px),radial-gradient(circle,rgba(255,255,255,.34) 0 .7px,transparent 1.1px),radial-gradient(circle,rgba(255,255,255,.18) 0 .55px,transparent .9px);background-size:97px 97px,151px 151px,223px 223px;background-position:11px 17px,57px 73px,31px 109px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.9),rgba(0,0,0,.18) 88%);animation:starDrift 32s linear infinite}
-.gate:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 52% 33%,rgba(255,255,255,.045),transparent 33%),linear-gradient(180deg,transparent 40%,rgba(5,5,5,.48) 74%,#050505 100%);pointer-events:none}
-@keyframes starDrift{from{transform:translate3d(0,0,0)}to{transform:translate3d(-36px,22px,0)}}
+.gate{position:absolute;z-index:60;inset:0;display:flex;align-items:flex-end;background:linear-gradient(180deg,rgba(0,0,0,.08) 0%,rgba(0,0,0,.10) 34%,rgba(5,5,5,.68) 76%,rgba(5,5,5,.94) 100%);padding:28px 22px calc(32px + env(safe-area-inset-bottom));text-align:left;transition:opacity .65s ease;overflow:hidden}
+.gate:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 38%,transparent 0 28%,rgba(0,0,0,.10) 54%,rgba(0,0,0,.36) 100%);pointer-events:none}
+.gate:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.10),transparent 28%,transparent 72%,rgba(0,0,0,.10));pointer-events:none}
 .gate.off{opacity:0;pointer-events:none;visibility:hidden;transition:opacity .65s ease,visibility 0s linear .65s}
-.gate.off:before{animation-play-state:paused}
 .gate-inner{position:relative;z-index:2;width:100%;max-width:720px}
 .gate-eyebrow{font-size:12px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:18px}
 .gate h1{font-size:clamp(68px,21vw,118px);font-weight:500;line-height:.78;letter-spacing:-.075em;margin:0 0 26px}
@@ -91,17 +98,17 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .fallback-transcript{display:none}
 
 @media (min-width:720px){
-  .topbar{top:28px;left:32px;right:32px}.brand{font-size:15px}.progress{gap:22px}.letter{font-size:13px}
+  .topbar{top:28px;left:32px;right:32px}.progress{gap:22px}.letter{font-size:13px}.coords{font-size:11px;letter-spacing:.08em}
   .card{left:32px;right:auto;bottom:32px;width:min(460px,calc(100% - 64px));padding:26px 28px 28px;border:1px solid var(--line);border-radius:2px;background:rgba(5,5,5,.88)}
   .star{font-size:56px}.type{font-size:15px}.fact strong{font-size:15px}.travel{left:32px;bottom:32px;font-size:13px}
   .endcard{left:32px;right:auto;bottom:32px;width:min(520px,calc(100% - 64px));padding:30px 30px 28px;border:1px solid var(--line);border-radius:2px}
   .gate{align-items:center;padding:52px 6vw}.gate-inner{max-width:900px}.gate h1{font-size:clamp(96px,13vw,180px);margin-bottom:36px}.gate p{font-size:18px;max-width:520px}.sound-note{font-size:20px;margin-top:28px}
 }
 @media (max-width:430px){
-  .topbar{top:max(18px,env(safe-area-inset-top));left:18px;right:18px}.brand{font-size:12px}.progress{gap:12px}.letter{font-size:11px}
+  .topbar{top:max(18px,env(safe-area-inset-top));left:18px;right:18px;gap:14px}.progress{gap:12px}.letter{font-size:11px}.coords{font-size:9px;letter-spacing:.045em;max-width:58vw}
   .card{padding-left:18px;padding-right:18px}.gate{padding-left:18px;padding-right:18px}.gate h1{font-size:72px}.gate p{font-size:15px}.sound-note{font-size:18px}
 }
-@media (prefers-reduced-motion:reduce){.warp:before,.warp:after,.travel-dot,.gate:before{animation:none}.card,.gate{transition:none}}
+@media (prefers-reduced-motion:reduce){.warp:before,.warp:after,.travel-dot{animation:none}.card,.gate,.earth-origin{transition:none}}
 </style>
 </head>
 <body>
@@ -110,14 +117,15 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
   <canvas id="speedFx" aria-hidden="true"></canvas>
   <div class="warp" id="warp"></div>
 
-  <div class="topbar">
-    <div class="brand"><span>ASTRA</span></div>
+  <div class="topbar" id="topbar">
     <div class="progress" aria-label="Tour progress">
       <div class="letter" data-step="0">A</div><div class="letter" data-step="1">S</div><div class="letter" data-step="2">T</div><div class="letter" data-step="3">R</div><div class="letter" data-step="4">A</div>
     </div>
+    <div class="coords" id="coords" aria-live="polite"></div>
   </div>
 
   <div class="travel" id="travel"><span class="travel-dot"></span><span id="travelText">Travelling</span></div>
+  <div class="earth-origin" id="earthOrigin" aria-hidden="true"><div class="earth-ring"></div><div class="earth-label">EARTH</div></div>
 
   <section class="card hidden" id="card" aria-live="polite">
     <div class="kicker" id="stopLabel">STOP 1 · A</div>
@@ -133,7 +141,7 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
   </section>
 
   <section class="endcard" id="endcard">
-    <h2>ASTRA complete.</h2>
+    <h2>Journey complete.</h2>
     <p>All five real positions are now on screen. Drag, zoom, and tap a marker to explore freely.</p>
     <button class="replay" id="replay">Replay tour</button>
   </section>
@@ -171,7 +179,9 @@ const stars=[
 let aladin=null,tourToken=0,currentIndex=-1,skyReady=false;
 let musicTrack=null,narrationTrack=null,musicFadeFrame=null,narrationResolve=null;
 let speedFxFrame=0,speedFxActive=false,speedFxIntensity=0,speedFxParticles=[];
+let gateMotionFrame=0;
 const narrationCache=new Map();
+const specialAudioCache=new Map();
 const $=id=>document.getElementById(id);
 const soundtrackUrl=window.ASTRA_CONFIG?.soundtrackUrl;
 if(soundtrackUrl)$('musicTrack').src=soundtrackUrl;
@@ -195,8 +205,9 @@ function travelPosition(raw,approachAt=.34){
   return .81+ease((raw-approachAt)/(1-approachAt))*.19;
 }
 
-function setProgress(i){document.querySelectorAll('.letter').forEach((el,j)=>{el.classList.toggle('active',j===i);el.classList.toggle('done',j<i)})}
+function setProgress(i){$('topbar').classList.add('on');document.querySelectorAll('.letter').forEach((el,j)=>{el.classList.toggle('active',j===i);el.classList.toggle('done',j<i)})}
 function clearProgress(){document.querySelectorAll('.letter').forEach(el=>el.classList.remove('active','done'))}
+function setCoords(text=''){const el=$('coords');if(el)el.textContent=text}
 function hideCard(){$('card').classList.add('hidden');$('nextBtn').classList.remove('on');$('fallbackTranscript').classList.remove('on')}
 function resizeSpeedFx(){
   const c=$('speedFx');if(!c)return;
@@ -231,7 +242,7 @@ function setTravel(on,text='Travelling'){
   $('travel').classList.toggle('on',on);$('warp').classList.toggle('on',on);$('travelText').textContent=text;
   setSpeedFx(on,on?.9:0);
 }
-function renderStar(i){const s=stars[i];$('stopLabel').textContent=`STOP ${i+1} · ${s.letter}`;$('starName').textContent=s.name;$('starType').textContent=s.type;$('fact1Label').textContent=s.fact1[0];$('fact1').textContent=s.fact1[1];$('fact2Label').textContent=s.fact2[0];$('fact2').textContent=s.fact2[1];$('card').classList.remove('hidden')}
+function renderStar(i){const s=stars[i];setCoords(s.coords);$('stopLabel').textContent=`STOP ${i+1} · ${s.letter}`;$('starName').textContent=s.name;$('starType').textContent=s.type;$('fact1Label').textContent=s.fact1[0];$('fact1').textContent=s.fact1[1];$('fact2Label').textContent=s.fact2[0];$('fact2').textContent=s.fact2[1];$('card').classList.remove('hidden')}
 function showNext(){const next=$('nextBtn');if(currentIndex<stars.length-1)next.textContent=`Continue to ${stars[currentIndex+1].name}`;else next.textContent='Finish the journey';next.classList.add('on')}
 
 function prepareNarration(i){
@@ -247,6 +258,23 @@ function preloadNarrations(){
   // Only the first narration is needed before the journey starts.
   // Each following file is prefetched while the current stop is playing.
   prepareNarration(0);
+}
+function prepareSpecial(src,preload='auto'){
+  if(specialAudioCache.has(src))return specialAudioCache.get(src);
+  const a=new Audio(src);a.preload=preload;if(preload!=='none')a.load();specialAudioCache.set(src,a);return a;
+}
+function playSpecial(src,onPlay){
+  return new Promise(resolve=>{
+    stopNarration();
+    const audio=prepareSpecial(src,'auto');
+    narrationTrack=audio;narrationResolve=resolve;
+    try{audio.currentTime=0}catch(_){}
+    audio.volume=1;
+    let finished=false;
+    const finish=()=>{if(finished)return;finished=true;fadeMusicTo(.17,1100);if(narrationTrack===audio)narrationTrack=null;if(narrationResolve===resolve)narrationResolve=null;resolve()};
+    audio.onplay=()=>{fadeMusicTo(.035,850);try{onPlay&&onPlay()}catch(_){}};
+    audio.onended=finish;audio.onerror=finish;audio.play().catch(finish);
+  });
 }
 function unlockNarration(i){
   // Safari/iOS may require each media element to be touched by a user gesture once.
@@ -300,6 +328,71 @@ function startMusic(){
   musicTrack.play().catch(()=>{});
 }
 
+function stopGateSkyMotion(){if(gateMotionFrame)cancelAnimationFrame(gateMotionFrame);gateMotionFrame=0}
+function startGateSkyMotion(){
+  stopGateSkyMotion();if(!aladin||reducedMotion()||$('gate').classList.contains('off'))return;
+  const w=Math.max(320,innerWidth||320),h=Math.max(480,innerHeight||480),aspect=w/h;
+  const baseFov=aspect>=1.45?30:aspect>=.95?34:38;
+  const start=performance.now();let last=0;
+  try{aladin.setProjection('TAN');aladin.gotoRaDec(266.4,-29.0);aladin.setFoV(baseFov)}catch(_){}
+  function frame(now){
+    if(!skyReady||$('gate').classList.contains('off')){gateMotionFrame=0;return}
+    if(now-last<50){gateMotionFrame=requestAnimationFrame(frame);return}last=now;
+    const t=(now-start)/36000,cycle=t-Math.floor(t),wave=.5-.5*Math.cos(cycle*Math.PI*2);
+    const fov=baseFov+10*wave,ra=266.4+1.35*Math.sin(t*Math.PI*1.4),dec=-29+.65*Math.sin(t*Math.PI*.9);
+    try{aladin.gotoRaDec(ra,dec);aladin.setFoV(fov)}catch(_){}
+    gateMotionFrame=requestAnimationFrame(frame);
+  }
+  gateMotionFrame=requestAnimationFrame(frame);
+}
+function earthDeparture(token,duration=25500){
+  return new Promise(resolve=>{
+    if(!aladin||token!==tourToken){resolve();return}
+    const earth=$('earthOrigin'),profile=getTravelProfile(),center=aladin.getRaDec();
+    const pair=(aladin.getFov&&aladin.getFov())||[36,36],startFov=Math.max(18,Math.min(48,Number(pair[0])||36));
+    const endFov=Math.min(profile.cruise*.94,88),start=performance.now();let last=0,faded=false;
+    earth.classList.remove('leaving');earth.classList.add('on');
+    try{aladin.setProjection('TAN')}catch(_){}
+    function frame(now){
+      if(token!==tourToken){earth.classList.remove('on','leaving');resolve();return}
+      const raw=Math.min(1,(now-start)/duration),e=ease(raw);
+      if(!faded&&raw>.43){faded=true;earth.classList.add('leaving')}
+      if(raw<1&&now-last<42){requestAnimationFrame(frame);return}last=now;
+      const fov=startFov+(endFov-startFov)*e;
+      const ra=wrap360(center[0]+2.2*e),dec=center[1]+.8*e;
+      try{aladin.gotoRaDec(ra,dec);aladin.setFoV(fov)}catch(_){}
+      if(raw<1)requestAnimationFrame(frame);else{earth.classList.remove('on','leaving');resolve()}
+    }
+    requestAnimationFrame(frame);
+  })
+}
+function zoomOutToOverview(token,duration=26000){
+  return new Promise(resolve=>{
+    if(!aladin||token!==tourToken){resolve();return}
+    const center=aladin.getRaDec(),pair=(aladin.getFov&&aladin.getFov())||[5,5];
+    const startFov=Math.max(3,Number(pair[0])||5),startRa=center[0],startDec=center[1],dRa=shortestDelta(startRa,0),dDec=-startDec;
+    const profile=getTravelProfile(),wideTAN=Math.min(98,profile.cruise*1.14),start=performance.now();
+    let switched=false,last=0;
+    try{aladin.setProjection('TAN')}catch(_){}
+    function frame(now){
+      if(token!==tourToken){resolve();return}
+      const raw=Math.min(1,(now-start)/duration);
+      speedFxIntensity=Math.max(.08,.48*(1-raw));
+      if(raw<1&&now-last<42){requestAnimationFrame(frame);return}last=now;
+      if(raw<.62){
+        const q=ease(raw/.62),ra=wrap360(startRa+dRa*q),dec=startDec+dDec*q,fov=startFov+(wideTAN-startFov)*q;
+        try{aladin.gotoRaDec(ra,dec);aladin.setFoV(fov)}catch(_){}
+      }else{
+        if(!switched){switched=true;try{aladin.setProjection('AIT');aladin.gotoRaDec(0,0);aladin.setFoV(118)}catch(_){}}
+        const q=ease((raw-.62)/.38),fov=118+(360-118)*q;
+        try{aladin.gotoRaDec(0,0);aladin.setFoV(fov)}catch(_){}
+      }
+      if(raw<1)requestAnimationFrame(frame);else{try{aladin.setProjection('AIT');aladin.gotoRaDec(0,0);aladin.setFoV(360)}catch(_){}resolve()}
+    }
+    requestAnimationFrame(frame)
+  })
+}
+
 function flyTo(target,token,duration,onApproach){
   return new Promise(resolve=>{
     if(!aladin||token!==tourToken){resolve();return}
@@ -341,7 +434,7 @@ function flyTo(target,token,duration,onApproach){
 async function arriveAt(i){
   const token=tourToken;
   currentIndex=i;setProgress(i);hideCard();
-  const s=stars[i];
+  const s=stars[i];setCoords(s.coords);
   // This function is entered synchronously from the user's click, so prime the narration now.
   unlockNarration(i);
   setTravel(true,`Travelling to ${s.name}`);setMusicLevel(.17);
@@ -368,24 +461,28 @@ async function arriveAt(i){
 
 async function finishTour(){
   const token=tourToken;
-  hideCard();
-  setTravel(true,'Returning to the full sky');
-  setMusicLevel(.17);
-  try{aladin.setProjection('AIT');aladin.gotoRaDec(0,0);aladin.setFoV(360)}catch(_){}
-  await new Promise(r=>setTimeout(r,2400));
+  hideCard();setCoords('');
+  // The Finish button is a user gesture, so start the final narration immediately.
+  const outroPromise=playSpecial('/audio/06-this-is-astra.mp3');
+  setTravel(true,'Revealing the full sky');setMusicLevel(.17);setSpeedFx(true,.46);
+  // Reach the five-point overview before the narration ends, so the last words land on the final sky.
+  const zoomPromise=zoomOutToOverview(token,26000);
+  await Promise.all([zoomPromise,outroPromise]);
   if(token!==tourToken)return;
-  setTravel(false);clearProgress();document.querySelectorAll('.letter').forEach(el=>el.classList.add('done'));$('endcard').classList.add('on')
+  setTravel(false);setSpeedFx(false);clearProgress();document.querySelectorAll('.letter').forEach(el=>el.classList.add('done'));$('topbar').classList.add('on');$('endcard').classList.add('on')
 }
 
-function startJourney(){
+async function startJourney(){
   if(!skyReady)return;
-  startMusic();
-  $('gate').classList.add('off');
-  $('endcard').classList.remove('on');
-  stopNarration();
-  tourToken++;
-  clearProgress();
-  try{aladin.setProjection('AIT');aladin.gotoRaDec(0,0);aladin.setFoV(360)}catch(_){}
+  startMusic();stopGateSkyMotion();
+  $('gate').classList.add('off');$('endcard').classList.remove('on');$('topbar').classList.remove('on');
+  stopNarration();tourToken++;const token=tourToken;clearProgress();setCoords('');
+  // Begin the welcome voice directly from the user's click, then let the real sky widen from Earth's viewpoint.
+  const introPromise=playSpecial('/audio/00-welcome.mp3',()=>prepareSpecial('/audio/06-this-is-astra.mp3','auto'));
+  const departurePromise=earthDeparture(token,25500);
+  await Promise.all([departurePromise,introPromise]);
+  if(token!==tourToken)return;
+  $('topbar').classList.add('on');
   arriveAt(0);
 }
 function goNext(){if(currentIndex<stars.length-1){arriveAt(currentIndex+1)}else finishTour()}
@@ -393,21 +490,21 @@ function goNext(){if(currentIndex<stars.length-1){arriveAt(currentIndex+1)}else 
 function addMarkers(){
   const cat=A.catalog({name:'ASTRA destinations',sourceSize:16,shape:'circle',color:'#ffffff',labelColumn:'label',displayLabel:true,labelColor:'#ffffff',labelFont:'500 12px Arial, sans-serif',onClick:'showPopup'});
   aladin.addCatalog(cat);
-  cat.addSources(stars.map(s=>A.source(s.ra,s.dec,{label:`${s.letter} · ${s.name}`,Name:s.name,Coordinates:s.coords})))
+  cat.addSources(stars.map(s=>A.source(s.ra,s.dec,{label:`${s.letter} · ${s.name}`,Name:s.name})))
 }
 function init(){
   resizeSpeedFx();
   preloadNarrations();
   if(typeof A==='undefined'){$('loader').innerHTML='<div class="loader-inner"><h1>ASTRA</h1><p>The sky viewer could not load. Please reload.</p></div>';return}
   A.init.then(()=>{
-    aladin=A.aladin('#aladin-lite-div',{survey:'P/DSS2/color',target:'00 00 00 +00 00 00',fov:360,projection:'AIT',cooFrame:'ICRS',showCooGrid:false,showReticle:false,showFrame:false,showLayersControl:false,showProjectionControl:false,showFullscreenControl:false,showZoomControl:true,showGotoControl:false,showContextMenu:false});
-    addMarkers();skyReady=true;setTimeout(()=>$('loader').classList.add('off'),650)
+    aladin=A.aladin('#aladin-lite-div',{survey:'P/DSS2/color',target:'17 45 40 -29 00 28',fov:34,projection:'TAN',cooFrame:'ICRS',showCooGrid:false,showCooLocation:false,showReticle:false,showFrame:false,showLayersControl:false,showProjectionControl:false,showFullscreenControl:false,showZoomControl:false,showGotoControl:false,showContextMenu:false});
+    addMarkers();skyReady=true;prepareSpecial('/audio/00-welcome.mp3','auto');setTimeout(()=>{$('loader').classList.add('off');startGateSkyMotion()},650)
   }).catch(()=>{$('loader').innerHTML='<div class="loader-inner"><h1>ASTRA</h1><p>The astronomical viewer hit an error. Please reload.</p></div>'})
 }
 
 $('startBtn').addEventListener('click',startJourney);
 $('nextBtn').addEventListener('click',goNext);
-$('replay').addEventListener('click',()=>{$('endcard').classList.remove('on');$('gate').classList.remove('off');clearProgress();currentIndex=-1;stopNarration();setSpeedFx(false);try{aladin.setProjection('AIT');aladin.gotoRaDec(0,0);aladin.setFoV(360)}catch(_){}});
+$('replay').addEventListener('click',()=>{$('endcard').classList.remove('on');$('gate').classList.remove('off');$('topbar').classList.remove('on');clearProgress();setCoords('');currentIndex=-1;stopNarration();setSpeedFx(false);try{aladin.setProjection('TAN');aladin.gotoRaDec(266.4,-29.0);aladin.setFoV(34)}catch(_){}startGateSkyMotion()});
 let resizeTimer=0;
 window.addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(resizeSpeedFx,120)},{passive:true});
 window.addEventListener('load',init);

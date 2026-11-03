@@ -1,6 +1,6 @@
-# ASTRA — recovered immersive
+# ASTRA — recovered earth-intro
 
-Recovered source snapshot from `ASTRA-immersive-responsive.zip`.
+Recovered source snapshot from `ASTRA-earth-intro-finale.zip`.
 This commit was created during the archive import, not during original development.
 
 Run `python3 -m http.server 8080 --directory public` and open
