@@ -1,183 +1,190 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Coordenadas no céu — Aladin Lite / DSS2</title>
-  <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-      background: #090b10;
-      color: #f5f7fb;
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    * { box-sizing: border-box; }
-    .page {
-      min-height: 100%;
-      display: grid;
-      grid-template-rows: auto auto 1fr auto;
-      gap: 12px;
-      padding: 16px;
-    }
-    h1 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 700;
-    }
-    .sub {
-      color: #aeb7c4;
-      font-size: 13px;
-      line-height: 1.45;
-      max-width: 1100px;
-    }
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    button {
-      appearance: none;
-      border: 1px solid #303846;
-      background: #151a22;
-      color: #f5f7fb;
-      padding: 8px 11px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 13px;
-    }
-    button:hover { background: #202733; }
-    button.primary {
-      background: #f5f7fb;
-      color: #0b0e13;
-      border-color: #f5f7fb;
-      font-weight: 650;
-    }
-    #aladin-lite-div {
-      width: 100%;
-      min-height: 620px;
-      height: calc(100vh - 190px);
-      border: 1px solid #2a303b;
-      border-radius: 10px;
-      overflow: hidden;
-      background: #000;
-    }
-    .legend {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 6px 16px;
-      font-size: 12px;
-      color: #c7ced8;
-    }
-    .legend b { color: #fff; }
-    .source-note {
-      color: #8f99a7;
-      font-size: 11px;
-      line-height: 1.4;
-    }
-    @media (max-width: 700px) {
-      #aladin-lite-div { min-height: 540px; height: 70vh; }
-    }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,height=device-height,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<title>ASTRA — A Five-Star Space Tour</title>
+<style>
+:root{
+  --bg:#05070b;--glass:rgba(8,11,17,.84);--line:rgba(255,255,255,.14);
+  --text:#f7f8fb;--muted:#b7c0ce;--accent:#9bdcff;--warm:#ffd88a;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
+button{font:inherit}
+.app{position:relative;width:100%;height:100svh;min-height:560px;background:#000;overflow:hidden}
+#aladin-lite-div{position:absolute;inset:0;width:100%;height:100%;background:#000}
+.topbar{position:absolute;z-index:30;top:max(12px,env(safe-area-inset-top));left:12px;right:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;pointer-events:none}
+.brand{padding:8px 10px;border:1px solid var(--line);border-radius:999px;background:rgba(4,7,11,.58);backdrop-filter:blur(12px);font-size:12px;font-weight:800;letter-spacing:.12em;white-space:nowrap}
+.brand span{color:var(--accent)}
+.progress{display:flex;align-items:center;gap:5px;padding:7px 9px;border:1px solid var(--line);border-radius:999px;background:rgba(4,7,11,.58);backdrop-filter:blur(12px)}
+.letter{width:21px;height:21px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:900;color:#7e8998;border:1px solid rgba(255,255,255,.12)}
+.letter.active{color:#06101a;background:#eef8ff;border-color:#eef8ff;transform:scale(1.08)}
+.letter.done{color:var(--warm);border-color:rgba(255,216,138,.55)}
+.card{position:absolute;z-index:35;left:12px;right:12px;bottom:max(14px,env(safe-area-inset-bottom));padding:14px 15px 15px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,rgba(10,14,21,.86),rgba(6,9,14,.94));backdrop-filter:blur(18px);box-shadow:0 12px 40px rgba(0,0,0,.28);transition:opacity .35s ease,transform .35s ease}
+.card.hidden{opacity:0;transform:translateY(12px);pointer-events:none}
+.kicker{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);font-weight:850;margin-bottom:4px}
+.star{font-size:30px;line-height:1.05;margin:0 0 3px;font-weight:850;letter-spacing:-.025em}
+.type{font-size:13px;color:var(--muted);margin-bottom:10px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fact{padding:9px 10px;border:1px solid rgba(255,255,255,.09);border-radius:12px;background:rgba(255,255,255,.045);min-width:0}
+.fact small{display:block;color:#97a3b3;font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.fact strong{display:block;font-size:13px;line-height:1.3}
+.narration{display:flex;align-items:center;gap:8px;margin-top:10px;color:#dfe7f1;font-size:12px}
+.voice-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+.next{display:none;width:100%;margin-top:11px;border:1px solid rgba(255,255,255,.18);background:#eef8ff;color:#06101a;border-radius:12px;padding:12px 14px;font-weight:850;cursor:pointer}
+.next.on{display:block}
+.travel{position:absolute;z-index:34;left:50%;top:50%;transform:translate(-50%,-50%);display:none;align-items:center;gap:10px;padding:10px 13px;border-radius:999px;border:1px solid var(--line);background:rgba(4,7,11,.72);backdrop-filter:blur(10px);font-size:12px;font-weight:800;white-space:nowrap;pointer-events:none}
+.travel.on{display:flex}
+.travel-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--accent)}
+.warp{position:absolute;z-index:25;inset:0;pointer-events:none;opacity:0;transition:opacity .4s ease;background:radial-gradient(circle at center,transparent 0 30%,rgba(3,8,15,.13) 56%,rgba(3,8,15,.55) 100%)}
+.warp.on{opacity:1}
+.warp:before,.warp:after{content:"";position:absolute;inset:-25%;background:repeating-radial-gradient(ellipse at center,transparent 0 18px,rgba(255,255,255,.065) 19px 20px,transparent 21px 38px);transform:scale(.72);opacity:0}
+.warp.on:before{animation:warp 1.8s linear infinite;opacity:.5}.warp.on:after{animation:warp 2.2s linear .2s infinite;opacity:.28}
+@keyframes warp{from{transform:scale(.55)}to{transform:scale(1.35)}}
+.endcard{position:absolute;z-index:36;left:12px;right:12px;bottom:max(14px,env(safe-area-inset-bottom));display:none;padding:16px;border:1px solid var(--line);border-radius:18px;background:var(--glass);backdrop-filter:blur(18px)}
+.endcard.on{display:block}.endcard h2{margin:0 0 4px;font-size:24px}.endcard p{margin:0;color:var(--muted);font-size:13px;line-height:1.4}.replay{margin-top:12px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:var(--text);border-radius:11px;padding:10px 12px;font-weight:800;cursor:pointer}
+.gate{position:absolute;z-index:60;inset:0;display:grid;place-items:center;background:radial-gradient(circle at 50% 30%,#101723 0,#05070b 52%,#020306 100%);padding:24px;text-align:center;transition:opacity .4s ease}
+.gate.off{opacity:0;pointer-events:none}.gate-inner{max-width:340px}.gate h1{font-size:40px;letter-spacing:.08em;margin:0 0 7px}.gate p{color:var(--muted);font-size:14px;line-height:1.45;margin:0}.start{margin-top:16px;border:0;background:#eef8ff;color:#07101a;border-radius:999px;padding:13px 18px;font-weight:900;cursor:pointer;min-width:190px}.tiny{margin-top:10px;font-size:11px;color:#778292}
+.loader{position:absolute;z-index:50;inset:0;display:grid;place-items:center;background:#05070b;padding:24px;text-align:center;transition:opacity .35s ease}.loader.off{opacity:0;pointer-events:none}.loader-inner{max-width:330px}.loader h1{font-size:34px;margin:0 0 7px}.loader p{color:var(--muted);font-size:14px;line-height:1.45;margin:0}.loader .tiny{margin-top:10px;font-size:11px;color:#758092}
+.fallback-transcript{display:none;margin-top:10px;color:#dfe7f1;font-size:13px;line-height:1.45}.fallback-transcript.on{display:block}
+@media (min-width:720px){.topbar{top:18px;left:18px;right:18px}.card,.endcard{left:auto;right:18px;bottom:18px;width:min(390px,calc(100% - 36px));padding:18px}.star{font-size:36px}.travel{font-size:13px}.brand{font-size:13px}.letter{width:26px;height:26px;font-size:12px}}
+@media (max-width:430px){.brand{font-size:10px;padding:7px 8px}.progress{gap:4px;padding:6px 7px}.letter{width:19px;height:19px;font-size:9px}.card{padding:13px}.star{font-size:28px}.type{font-size:12px}.fact strong{font-size:12px}.next{font-size:13px}}
+@media (prefers-reduced-motion:reduce){.warp.on:before,.warp.on:after,.voice-dot{animation:none}.card{transition:none}}
+</style>
 </head>
 <body>
-  <div class="page">
-    <div>
-      <h1>Visualização real das 5 coordenadas celestes</h1>
-      <div class="sub">
-        Fundo: Digital Sky Survey 2 (DSS2 Color), servido pelo CDS/Aladin.
-        Os marcadores usam exatamente as coordenadas RA/Dec fornecidas, convertidas para graus decimais.
-        Clique em um marcador ou use os botões para navegar.
-      </div>
-    </div>
+<div class="app">
+  <div id="aladin-lite-div" aria-label="Interactive astronomical sky survey"></div>
+  <div class="warp" id="warp"></div>
 
-    <div class="controls">
-      <button class="primary" onclick="overview()">Visão geral</button>
-      <button onclick="goTo(247.3520833333, -26.4319444444, 'Antares')">1 · Antares</button>
-      <button onclick="goTo(101.2870833333, -16.7161111111, 'Sirius')">2 · Sirius</button>
-      <button onclick="goTo(296.5650000000, 10.6133333333, 'Tarazed')">3 · Tarazed</button>
-      <button onclick="goTo(78.6345833333, -8.2016666667, 'Rigel')">4 · Rigel</button>
-      <button onclick="goTo(68.9800000000, 16.5091666667, 'Aldebaran')">5 · Aldebaran</button>
-    </div>
-
-    <div id="aladin-lite-div"></div>
-
-    <div>
-      <div class="legend">
-        <div><b>1 · Antares</b> — 16:29:24.5, −26:25:55</div>
-        <div><b>2 · Sirius</b> — 06:45:08.9, −16:42:58</div>
-        <div><b>3 · Tarazed</b> — 19:46:15.6, +10:36:48</div>
-        <div><b>4 · Rigel</b> — 05:14:32.3, −08:12:06</div>
-        <div><b>5 · Aldebaran</b> — 04:35:55.2, +16:30:33</div>
-      </div>
-      <div class="source-note">
-        Este arquivo não contém uma imagem gerada. Ele carrega, em tempo real, mosaicos astronômicos HiPS/DSS2
-        do Centre de Données astronomiques de Strasbourg (CDS) por meio do Aladin Lite.
-        É necessário estar conectado à internet ao abrir o arquivo.
-      </div>
+  <div class="topbar">
+    <div class="brand"><span>ASTRA</span> · REAL SKY TOUR</div>
+    <div class="progress" aria-label="Tour progress">
+      <div class="letter" data-step="0">A</div><div class="letter" data-step="1">S</div><div class="letter" data-step="2">T</div><div class="letter" data-step="3">R</div><div class="letter" data-step="4">A</div>
     </div>
   </div>
 
-  <script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js" charset="utf-8"></script>
-  <script>
-    let aladin;
+  <div class="travel" id="travel"><span class="travel-dot"></span><span id="travelText">Travelling</span></div>
 
-    const points = [
-      {name: "1 · Antares",    ra: 247.3520833333, dec: -26.4319444444, sexa: "16:29:24.5  −26:25:55"},
-      {name: "2 · Sirius",     ra: 101.2870833333, dec: -16.7161111111, sexa: "06:45:08.9  −16:42:58"},
-      {name: "3 · Tarazed",    ra: 296.5650000000, dec:  10.6133333333, sexa: "19:46:15.6  +10:36:48"},
-      {name: "4 · Rigel",      ra:  78.6345833333, dec:  -8.2016666667, sexa: "05:14:32.3  −08:12:06"},
-      {name: "5 · Aldebaran",  ra:  68.9800000000, dec:  16.5091666667, sexa: "04:35:55.2  +16:30:33"}
-    ];
+  <section class="card hidden" id="card" aria-live="polite">
+    <div class="kicker" id="stopLabel">STOP 1 · A</div>
+    <h2 class="star" id="starName"></h2>
+    <div class="type" id="starType"></div>
+    <div class="facts">
+      <div class="fact"><small id="fact1Label"></small><strong id="fact1"></strong></div>
+      <div class="fact"><small id="fact2Label"></small><strong id="fact2"></strong></div>
+    </div>
+    <div class="narration" id="narration"><span class="voice-dot"></span><span>Voice narration…</span></div>
+    <div class="fallback-transcript" id="fallbackTranscript"></div>
+    <button class="next" id="nextBtn"></button>
+  </section>
 
-    A.init.then(() => {
-      aladin = A.aladin("#aladin-lite-div", {
-        survey: "P/DSS2/color",
-        target: "12 00 00 +00 00 00",
-        fov: 180,
-        showReticle: false,
-        showFrame: true,
-        showLayersControl: true,
-        showFullscreenControl: true,
-        showZoomControl: true,
-        showGotoControl: true,
-        showContextMenu: true
-      });
+  <section class="endcard" id="endcard">
+    <h2>ASTRA complete.</h2>
+    <p>All five real positions are now on screen. Drag, zoom, and tap a marker to explore freely.</p>
+    <button class="replay" id="replay">Replay tour</button>
+  </section>
 
-      aladin.setProjection("AIT");
+  <div class="loader" id="loader">
+    <div class="loader-inner"><h1>ASTRA</h1><p>Loading the real sky…</p><div class="tiny">DSS2 survey data via CDS / Aladin</div></div>
+  </div>
 
-      const cat = A.catalog({
-        name: "Coordenadas fornecidas",
-        sourceSize: 18,
-        shape: "cross"
-      });
-      aladin.addCatalog(cat);
+  <div class="gate" id="gate">
+    <div class="gate-inner">
+      <h1>ASTRA</h1>
+      <p>A narrated five-stop journey across the real sky.</p>
+      <button class="start" id="startBtn">Start the journey</button>
+      <div class="tiny">Sound on · cinematic score + neural narration</div>
+    </div>
+  </div>
+  <audio id="musicTrack" preload="auto" loop></audio>
+</div>
 
-      const markers = points.map(p =>
-        A.marker(p.ra, p.dec, {
-          popupTitle: p.name,
-          popupDesc:
-            "<b>RA/Dec:</b> " + p.sexa +
-            "<br><b>RA decimal:</b> " + p.ra.toFixed(7) + "°" +
-            "<br><b>Dec decimal:</b> " + p.dec.toFixed(7) + "°"
-        })
-      );
-      cat.addSources(markers);
-    });
+<script src="./config.js"></script>
+<script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js" charset="utf-8"></script>
+<script>
+const stars=[{"letter":"A","name":"Antares","type":"Red supergiant · Scorpius","ra":247.3520833333,"dec":-26.4319444444,"coords":"16:29:24.5  −26:25:55","fact1":["DISTANCE","~550 light-years"],"fact2":["SCALE","Enormous"],"audio":"/audio/01-antares.mp3"},{"letter":"S","name":"Sirius","type":"Blue-white star system · Canis Major","ra":101.2870833333,"dec":-16.7161111111,"coords":"06:45:08.9  −16:42:58","fact1":["DISTANCE","8.6 light-years"],"fact2":["KNOWN FOR","Brightest night star"],"audio":"/audio/02-sirius.mp3"},{"letter":"T","name":"Tarazed","type":"Orange bright giant · Aquila","ra":296.565,"dec":10.6133333333,"coords":"19:46:15.6  +10:36:48","fact1":["DISTANCE","~395 light-years"],"fact2":["LIGHT LEFT","Around the 1600s"],"audio":"/audio/03-tarazed.mp3"},{"letter":"R","name":"Rigel","type":"Blue supergiant · Orion","ra":78.6345833333,"dec":-8.2016666667,"coords":"05:14:32.3  −08:12:06","fact1":["DISTANCE","~860 light-years"],"fact2":["COLOR","Blue-white"],"audio":"/audio/04-rigel.mp3"},{"letter":"A","name":"Aldebaran","type":"Orange giant · Taurus","ra":68.98,"dec":16.5091666667,"coords":"04:35:55.2  +16:30:33","fact1":["DISTANCE","~65 light-years"],"fact2":["KNOWN AS","The Bull's eye"],"audio":"/audio/05-aldebaran.mp3"}];
 
-    function goTo(ra, dec, name) {
-      if (!aladin) return;
-      aladin.setProjection("TAN");
-      aladin.gotoRaDec(ra, dec);
-      aladin.setFov(3);
-    }
+let aladin=null,tourToken=0,currentIndex=-1,skyReady=false;
+let musicTrack=null,narrationTrack=null,musicFadeFrame=null;
+const $=id=>document.getElementById(id);
+const soundtrackUrl=window.ASTRA_CONFIG?.soundtrackUrl;
+if(soundtrackUrl)$('musicTrack').src=soundtrackUrl;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const wrap360=x=>((x%360)+360)%360;
+const shortestDelta=(a,b)=>{let d=b-a;while(d>180)d-=360;while(d<-180)d+=360;return d};
 
-    function overview() {
-      if (!aladin) return;
-      aladin.setProjection("AIT");
-      aladin.gotoRaDec(180, 0);
-      aladin.setFov(180);
-    }
-  </script>
+function setProgress(i){document.querySelectorAll('.letter').forEach((el,j)=>{el.classList.toggle('active',j===i);el.classList.toggle('done',j<i)})}
+function clearProgress(){document.querySelectorAll('.letter').forEach(el=>el.classList.remove('active','done'))}
+function hideCard(){$('card').classList.add('hidden');$('nextBtn').classList.remove('on');$('fallbackTranscript').classList.remove('on')}
+function setTravel(on,text='Travelling'){$('travel').classList.toggle('on',on);$('warp').classList.toggle('on',on);$('travelText').textContent=text}
+function renderStar(i){const s=stars[i];$('stopLabel').textContent=`STOP ${i+1} · ${s.letter}`;$('starName').textContent=s.name;$('starType').textContent=s.type;$('fact1Label').textContent=s.fact1[0];$('fact1').textContent=s.fact1[1];$('fact2Label').textContent=s.fact2[0];$('fact2').textContent=s.fact2[1];$('narration').style.display='flex';$('card').classList.remove('hidden')}
+function showNext(){const next=$('nextBtn');$('narration').style.display='none';if(currentIndex<stars.length-1)next.textContent=`Click here to go next: ${stars[currentIndex+1].name}`;else next.textContent='Click here to finish the tour';next.classList.add('on')}
+
+function stopNarration(){
+  if(!narrationTrack)return;
+  try{narrationTrack.pause();narrationTrack.currentTime=0}catch(_){}
+  narrationTrack=null;
+}
+function fadeMusicTo(target,duration=700){
+  if(!musicTrack)musicTrack=$('musicTrack');
+  if(!musicTrack)return;
+  if(musicFadeFrame)cancelAnimationFrame(musicFadeFrame);
+  const start=musicTrack.volume,started=performance.now(),safe=Math.max(0,Math.min(1,target));
+  function step(now){
+    const p=Math.min(1,(now-started)/duration),e=1-Math.pow(1-p,3);
+    musicTrack.volume=start+(safe-start)*e;
+    if(p<1)musicFadeFrame=requestAnimationFrame(step);
+  }
+  musicFadeFrame=requestAnimationFrame(step);
+}
+function playNarration(i){
+  return new Promise(resolve=>{
+    stopNarration();
+    const audio=new Audio(stars[i].audio);
+    narrationTrack=audio;
+    audio.preload='auto';
+    audio.volume=1;
+    let finished=false;
+    const finish=()=>{
+      if(finished)return;
+      finished=true;
+      fadeMusicTo(.16,900);
+      narrationTrack=null;
+      resolve();
+    };
+    audio.onplay=()=>fadeMusicTo(.045,900);
+    audio.onended=finish;
+    audio.onerror=finish;
+    audio.play().catch(finish);
+  });
+}
+function setMusicLevel(v){fadeMusicTo(v,650)}
+function startMusic(){
+  if(!musicTrack)musicTrack=$('musicTrack');
+  if(!musicTrack||!musicTrack.getAttribute('src'))return;
+  musicTrack.volume=.16;
+  musicTrack.play().catch(()=>{});
+}
+
+function flyTo(target,token,duration=7200){return new Promise(resolve=>{if(!aladin||token!==tourToken){resolve();return}let center=aladin.getRaDec();const startRa=center[0],startDec=center[1],dRa=shortestDelta(startRa,target.ra),dDec=target.dec-startDec;const currentFov=(aladin.getFov&&aladin.getFov()[0])||6;const startFov=Math.min(140,Math.max(6,currentFov)),cruise=118,endFov=4.6,start=performance.now();try{aladin.setProjection('TAN')}catch(_){}function frame(now){if(token!==tourToken){resolve();return}const raw=Math.min(1,(now-start)/duration),p=ease(raw);const ra=wrap360(startRa+dRa*p),dec=startDec+dDec*p;let fov;if(raw<.38){const q=ease(raw/.38);fov=startFov+(cruise-startFov)*q}else{const q=ease((raw-.38)/.62);fov=cruise+(endFov-cruise)*q}try{aladin.gotoRaDec(ra,dec);aladin.setFoV(fov)}catch(_){}if(raw<1)requestAnimationFrame(frame);else{try{aladin.gotoRaDec(target.ra,target.dec);aladin.setFoV(endFov)}catch(_){}resolve()}}requestAnimationFrame(frame)})}
+
+async function arriveAt(i){const token=tourToken;currentIndex=i;setProgress(i);hideCard();setTravel(true,`Travelling to ${stars[i].name}`);setMusicLevel(.19);await flyTo(stars[i],token,i===0?7600:7200);if(token!==tourToken)return;setTravel(false);renderStar(i);await sleep(350);if(token!==tourToken)return;await playNarration(i);if(token!==tourToken)return;showNext()}
+
+async function finishTour(){const token=tourToken;hideCard();setTravel(true,'Returning to the full sky');setMusicLevel(.18);try{aladin.setProjection('AIT');aladin.gotoRaDec(0,0);aladin.setFoV(360)}catch(_){}await sleep(1700);if(token!==tourToken)return;setTravel(false);clearProgress();document.querySelectorAll('.letter').forEach(el=>el.classList.add('done'));$('endcard').classList.add('on')}
+
+function startJourney(){if(!skyReady)return;startMusic();$('gate').classList.add('off');$('endcard').classList.remove('on');stopNarration();tourToken++;clearProgress();try{aladin.setProjection('AIT');aladin.gotoRaDec(0,0);aladin.setFoV(360)}catch(_){}setTimeout(()=>arriveAt(0),650)}
+
+function goNext(){if(currentIndex<stars.length-1){stopNarration();arriveAt(currentIndex+1)}else finishTour()}
+
+function addMarkers(){const cat=A.catalog({name:'ASTRA destinations',sourceSize:18,shape:'circle',color:'#ff5d4d',labelColumn:'label',displayLabel:true,labelColor:'#ffffff',labelFont:'bold 12px sans-serif',onClick:'showPopup'});aladin.addCatalog(cat);cat.addSources(stars.map(s=>A.source(s.ra,s.dec,{label:`${s.letter} · ${s.name}`,Name:s.name,Coordinates:s.coords}))) }
+
+function init(){if(typeof A==='undefined'){$('loader').innerHTML='<div class="loader-inner"><h1>ASTRA</h1><p>The sky viewer could not load. Please reload.</p></div>';return}A.init.then(()=>{aladin=A.aladin('#aladin-lite-div',{survey:'P/DSS2/color',target:'00 00 00 +00 00 00',fov:360,projection:'AIT',cooFrame:'ICRS',showCooGrid:false,showReticle:false,showFrame:false,showLayersControl:false,showProjectionControl:false,showFullscreenControl:false,showZoomControl:true,showGotoControl:false,showContextMenu:false});addMarkers();skyReady=true;setTimeout(()=>$('loader').classList.add('off'),650)}).catch(()=>{$('loader').innerHTML='<div class="loader-inner"><h1>ASTRA</h1><p>The astronomical viewer hit an error. Please reload.</p></div>'})}
+
+$('startBtn').addEventListener('click',startJourney);$('nextBtn').addEventListener('click',goNext);$('replay').addEventListener('click',()=>{$('endcard').classList.remove('on');$('gate').classList.remove('off');clearProgress();currentIndex=-1;stopNarration();try{aladin.setProjection('AIT');aladin.gotoRaDec(0,0);aladin.setFoV(360)}catch(_){}});window.addEventListener('load',init);
+</script>
 </body>
 </html>
