@@ -68,9 +68,10 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .endcard p{margin:0;color:var(--muted);font-size:14px;line-height:1.5;max-width:540px}
 .replay{margin-top:20px;border:1px solid var(--line);background:transparent;color:var(--text);border-radius:999px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer}
 
-.finale-overlay{position:absolute;z-index:34;inset:0;pointer-events:none;opacity:0;transition:opacity 1.2s ease;background:radial-gradient(circle at 50% 48%,rgba(0,0,0,.015) 0 18%,rgba(0,0,0,.14) 58%,rgba(0,0,0,.54) 100%)}
+.finale-overlay{position:absolute;z-index:34;inset:0;pointer-events:none;opacity:0;overflow:hidden;transition:opacity 1.2s ease;background:radial-gradient(circle at 50% 48%,rgba(0,0,0,.01) 0 32%,rgba(0,0,0,.10) 64%,rgba(0,0,0,.38) 100%)}
+.finale-overlay:before{content:"";position:absolute;inset:-2px;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 50% 50%,transparent 0 48%,rgba(0,0,0,.035) 64%,rgba(0,0,0,.18) 82%,rgba(0,0,0,.48) 100%);box-shadow:inset 0 0 min(16vw,190px) rgba(0,0,0,.34)}
 .finale-overlay.on{opacity:1}
-.finale-brand{position:absolute;left:50%;top:47%;width:min(92vw,980px);transform:translate(-50%,-42%) scale(.985);text-align:center;opacity:0;transition:opacity 6s cubic-bezier(.16,.8,.25,1),transform 6s cubic-bezier(.16,.8,.25,1)}
+.finale-brand{position:absolute;z-index:2;left:50%;top:47%;width:min(92vw,980px);transform:translate(-50%,-40%) scale(.982);text-align:center;opacity:0;transition:opacity 5.8s cubic-bezier(.12,.72,.22,1),transform 5.8s cubic-bezier(.12,.72,.22,1)}
 .finale-brand.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 .finale-brand.out{opacity:0;transform:translate(-50%,-54%) scale(1.015);transition-duration:3.4s}
 .finale-brand small{display:block;margin-bottom:13px;font-size:clamp(10px,1vw,12px);font-weight:600;letter-spacing:.19em;text-transform:uppercase;color:rgba(255,255,255,.58);text-shadow:0 2px 20px rgba(0,0,0,.9)}
@@ -171,8 +172,8 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 <script>
 const stars=[
   {letter:'A',name:'Antares',type:'Red supergiant · Scorpius',ra:247.3520833333,dec:-26.4319444444,coords:'16:29:24.5  −26:25:55',fact1:['DISTANCE','~550 light-years'],fact2:['SCALE','Enormous'],audio:'/audio/01-antares.mp3',duration:18816,arrivalFov:1.25},
-  {letter:'S',name:'Sirius',type:'Blue-white star system · Canis Major',ra:101.2870833333,dec:-16.7161111111,coords:'06:45:08.9  −16:42:58',fact1:['DISTANCE','8.6 light-years'],fact2:['KNOWN FOR','Brightest night star'],audio:'/audio/02-sirius.mp3',duration:18048,arrivalFov:1.10,desktopArrivalFov:1.28},
-  {letter:'T',name:'Tarazed',type:'Orange bright giant · Aquila',ra:296.565,dec:10.6133333333,coords:'19:46:15.6  +10:36:48',fact1:['DISTANCE','~395 light-years'],fact2:['LIGHT LEFT','Around the 1600s'],audio:'/audio/03-tarazed.mp3',duration:16368,arrivalFov:.72,mobileArrivalFov:.84},
+  {letter:'S',name:'Sirius',type:'Blue-white star system · Canis Major',ra:101.2870833333,dec:-16.7161111111,coords:'06:45:08.9  −16:42:58',fact1:['DISTANCE','8.6 light-years'],fact2:['KNOWN FOR','Brightest night star'],audio:'/audio/02-sirius.mp3',duration:18048,arrivalFov:1.10,desktopArrivalScale:1.15},
+  {letter:'T',name:'Tarazed',type:'Orange bright giant · Aquila',ra:296.565,dec:10.6133333333,coords:'19:46:15.6  +10:36:48',fact1:['DISTANCE','~395 light-years'],fact2:['LIGHT LEFT','Around the 1600s'],audio:'/audio/03-tarazed.mp3',duration:16368,arrivalFov:.72,mobileArrivalScale:.94},
   {letter:'R',name:'Rigel',type:'Blue supergiant · Orion',ra:78.6345833333,dec:-8.2016666667,coords:'05:14:32.3  −08:12:06',fact1:['DISTANCE','~860 light-years'],fact2:['COLOR','Blue-white'],audio:'/audio/04-rigel.mp3',duration:16704,arrivalFov:1.20},
   {letter:'A',name:'Aldebaran',type:'Orange giant · Taurus',ra:68.98,dec:16.5091666667,coords:'04:35:55.2  +16:30:33',fact1:['DISTANCE','~65 light-years'],fact2:['KNOWN AS',"The Bull's eye"],audio:'/audio/05-aldebaran.mp3',duration:15936,arrivalFov:.78}
 ];
@@ -208,9 +209,10 @@ function getTravelProfile(){
 function arrivalFovFor(target){
   const profile=getTravelProfile();
   const w=Math.max(320,window.innerWidth||320),h=Math.max(480,window.innerHeight||480),aspect=w/h;
-  if(aspect>=1.45&&target.desktopArrivalFov!=null)return Math.max(.55,target.desktopArrivalFov);
-  if(aspect<.95&&target.mobileArrivalFov!=null)return Math.max(.55,target.mobileArrivalFov);
-  return Math.max(.55,(target.arrivalFov||1.1)*profile.arrivalScale);
+  let deviceScale=1;
+  if(aspect>=1.45)deviceScale=target.desktopArrivalScale||1;
+  else if(aspect<.95)deviceScale=target.mobileArrivalScale||1;
+  return Math.max(.55,(target.arrivalFov||1.1)*profile.arrivalScale*deviceScale);
 }
 
 
@@ -222,26 +224,13 @@ function expLerp(a,b,t){
   return a*Math.pow(b/a,t);
 }
 
-function travelPanProgress(raw){
-  const t=Math.max(0,Math.min(1,raw));
-  // Keep the camera attached to the departing star for a beat, then cross the
-  // empty sky more decisively, and finally settle gently on the destination.
-  if(t<.18)return .06*ease(t/.18);
-  if(t<.62)return .06+.86*easeOut((t-.18)/.44);
-  return .92+.08*ease((t-.62)/.38);
-}
-function rotationCoverScale(deg){
-  const rad=((deg%180)+180)%180*Math.PI/180;
-  const c=Math.abs(Math.cos(rad)),s=Math.abs(Math.sin(rad));
-  const w=Math.max(1,window.innerWidth||1),h=Math.max(1,window.innerHeight||1);
-  // Minimum scale required for a rotated rectangular canvas to cover the
-  // viewport. This removes the black triangular corners during the finale.
-  return Math.max(c+s*(h/w),c+s*(w/h));
-}
 function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
-const EARTH_HOLD_MS=4000;
-const EARTH_DEPARTURE_MS=15000;
-const FIRST_FLIGHT_MS=13000;
+function interStarCenterProgress(raw){
+  const r=Math.max(0,Math.min(1,raw));
+  if(r<=.11)return .03*Math.pow(r/.11,2.15);
+  const t=Math.min(1,(r-.11)/.67);
+  return .03+.97*(1-Math.pow(1-t,3.2));
+}
 
 function setProgress(i){$('topbar').classList.add('on');document.querySelectorAll('.letter').forEach((el,j)=>{el.classList.toggle('active',j===i);el.classList.toggle('done',j<i)})}
 function clearProgress(){document.querySelectorAll('.letter').forEach(el=>el.classList.remove('active','done'))}
@@ -411,7 +400,8 @@ function moveToEarth(token,duration=4800){
     const earth=$('earthOrigin'),center=aladin.getRaDec(),pair=(aladin.getFov&&aladin.getFov())||[28,28];
     const startRa=center[0],startDec=center[1],startFov=Math.max(5,Number(pair[0])||28);
     const dRa=shortestDelta(startRa,EARTH_ANCHOR.ra),dDec=EARTH_ANCHOR.dec-startDec;
-    const targetFov=(innerWidth/Math.max(1,innerHeight)>=1.25)?.40:.52;
+    const aspect=innerWidth/Math.max(1,innerHeight);
+    const targetFov=aspect>=1.45?.42:aspect>=.95?.48:.58;
     const start=performance.now();let last=0,shown=false;
     earth.classList.remove('on','leaving');
     try{aladin.setProjection('TAN')}catch(_){}
@@ -481,7 +471,7 @@ function zoomOutToOverview(token,duration=18500){
   })
 }
 
-function flyTo(target,token,duration,onApproach,voiceAtOverride=null){
+function flyTo(target,token,duration,onApproach,voiceAtOverride=null,curveMode='standard'){
   return new Promise(resolve=>{
     cancelArrivalZoom();
     if(!aladin||token!==tourToken){resolve();return}
@@ -502,14 +492,15 @@ function flyTo(target,token,duration,onApproach,voiceAtOverride=null){
       const raw=Math.min(1,(now-start)/duration);
       if(!voiceStarted&&raw>=voiceAt){voiceStarted=true;try{onApproach&&onApproach()}catch(_){}}
       if(raw<1&&now-lastRender<33){requestAnimationFrame(frame);return}lastRender=now;
-      const p=travelPanProgress(raw),ra=wrap360(startRa+dRa*p),dec=startDec+dDec*p;
+      const p=curveMode==='interstar'?interStarCenterProgress(raw):centerProgress(raw),ra=wrap360(startRa+dRa*p),dec=startDec+dDec*p;
       let fov;
       if(raw<.27){
-        // Same phase length as before, but no aggressive ease-out at the start.
-        // The star releases more slowly while the pan catches up in the middle.
-        const q=ease(raw/.27);fov=startFov+(cruise-startFov)*q;
+        // Keep the same phase length, but leave the current star more gently.
+        const t=raw/.27;
+        const q=curveMode==='interstar'?ease(t):easeOut(t);
+        fov=startFov+(cruise-startFov)*q;
       }else{
-        // Destination zoom-in is intentionally unchanged.
+        // Intentionally unchanged: arrival zoom into the next star keeps its existing timing/feel.
         const q=ease((raw-.27)/.73);fov=cruise+(endFov-cruise)*q;
       }
       try{aladin.gotoRaDec(ra,dec);aladin.setFoV(fov)}catch(_){}
@@ -532,7 +523,7 @@ async function arriveAt(i,options={}){
   setTravel(true,`Travelling to ${s.name}`);setMusicLevel(MUSIC_BASE);
 
   const initialLeg=Boolean(options.initialLeg);
-  const flightDuration=initialLeg?FIRST_FLIGHT_MS:Math.max(9800,Math.min(13200,Math.round(s.duration*.66)));
+  const flightDuration=initialLeg?14000:Math.max(9800,Math.min(13200,Math.round(s.duration*.66)));
   const waitForAudio=options.waitForAudio||null;
   let narrationStarted=false,narrationPromise=null;
   const startVoice=()=>{
@@ -545,7 +536,7 @@ async function arriveAt(i,options={}){
     })();
   };
 
-  await flyTo(s,token,flightDuration,startVoice,initialLeg?.78:null);
+  await flyTo(s,token,flightDuration,startVoice,initialLeg?.78:null,initialLeg?'standard':'interstar');
   if(token!==tourToken)return;
   if(!narrationStarted)startVoice();
 
@@ -572,6 +563,16 @@ function hideFinaleOverlay(){
 }
 function finaleEaseIn(t){return t*t*t}
 function finaleEaseOut(t){return 1-Math.pow(1-t,3)}
+
+function finaleCoverScale(rotationDeg){
+  // Exact overscan needed for a rotated viewport-sized rectangle, plus a safety margin.
+  const w=Math.max(1,window.innerWidth||1),h=Math.max(1,window.innerHeight||1),aspect=w/h;
+  const rad=(rotationDeg%180)*Math.PI/180,c=Math.abs(Math.cos(rad)),s=Math.abs(Math.sin(rad));
+  const needX=c+(1/aspect)*s,needY=c+aspect*s;
+  const required=Math.max(1,needX,needY);
+  // Safety grows only when rotation actually needs overscan, so 0/360° resolves cleanly back to scale(1).
+  return 1+(required-1)*1.08;
+}
 function animateFinale(token,duration=OUTRO_DURATION){
   return new Promise(resolve=>{
     cancelArrivalZoom();resetSkyStage();
@@ -585,40 +586,32 @@ function animateFinale(token,duration=OUTRO_DURATION){
     try{aladin.setProjection('TAN')}catch(_){ }
     function frame(now){
       if(token!==tourToken){resetSkyStage();resolve();return}
-      const elapsed=Math.min(duration,now-start);
+      const elapsed=Math.min(duration,now-start),raw=elapsed/duration;
       if(elapsed<duration&&now-last<32){finaleFrame=requestAnimationFrame(frame);return}last=now;
 
-      let ra,dec,fov,rotation,baseScale;
-      if(elapsed<11000){
-        // One continuous acceleration curve before the reveal. The orbit is
-        // almost still at first, then visibly gains angular speed until 11s.
-        const p=elapsed/11000;
-        const approach=ease(Math.min(1,p/.36));
-        const accel=Math.pow(p,2.72);
-        const orbit=Math.pow(Math.max(0,(p-.22)/.78),1.85);
-        const galaxyFov=p<.36
-          ? expLerp(startFov,46,approach)
-          : expLerp(46,7.2,ease((p-.36)/.64));
-        ra=wrap360(startRa+dRaToGalaxy*approach + 2.0*Math.sin(orbit*Math.PI*.92)*orbit);
-        dec=startDec+dDecToGalaxy*approach + .95*Math.sin(orbit*Math.PI*1.32)*orbit;
-        fov=galaxyFov;
-        rotation=250*accel;
-        baseScale=1+.28*ease(p);
+      let ra,dec,fov,rotation,cinematicScale;
+      if(elapsed<3400){
+        const p=elapsed/3400,q=ease(p),spin=Math.pow(elapsed/11000,3.18);
+        ra=wrap360(startRa+dRaToGalaxy*q);dec=startDec+dDecToGalaxy*q;
+        fov=expLerp(startFov,46,q);rotation=250*spin;cinematicScale=1+.10*q;
+      }else if(elapsed<11000){
+        const p=(elapsed-3400)/7600,q=ease(p),spin=Math.pow(elapsed/11000,3.18);
+        ra=EARTH_ANCHOR.ra;dec=EARTH_ANCHOR.dec;
+        fov=expLerp(46,7.2,q);rotation=250*spin;cinematicScale=1.10+.18*q;
       }else if(elapsed<18600){
-        // Keep the post-reveal movement exactly in the direction that worked.
+        // Preserve the post-reveal movement that already felt right.
         const p=(elapsed-11000)/7600,q=finaleEaseOut(p);
         ra=EARTH_ANCHOR.ra;dec=EARTH_ANCHOR.dec;
-        fov=expLerp(7.2,5.4,q);rotation=250+(315-250)*q;baseScale=1.28-.06*q;
+        fov=expLerp(7.2,5.4,q);rotation=250+(315-250)*q;cinematicScale=1.28-.06*q;
       }else{
         const p=(elapsed-18600)/(duration-18600),q=ease(p),slow=finaleEaseOut(p);
         const dRa=shortestDelta(EARTH_ANCHOR.ra,0);
         ra=wrap360(EARTH_ANCHOR.ra+dRa*q);dec=EARTH_ANCHOR.dec*(1-q);
-        fov=expLerp(5.4,360,q);rotation=315+(360-315)*slow;baseScale=1.22-.22*q;
+        fov=expLerp(5.4,360,q);rotation=315+(360-315)*slow;cinematicScale=1.22-.22*q;
         if(!travelChanged){travelChanged=true;setTravel(true,'Revealing the full sky')}
         if(!ait&&p>.47){ait=true;try{aladin.setProjection('AIT')}catch(_){ }}
       }
 
-      // Start the reveal half a second earlier and let it breathe longer.
       if(!titleShown&&elapsed>=10500){
         titleShown=true;$('finaleBrand').classList.add('on');
       }
@@ -626,16 +619,12 @@ function animateFinale(token,duration=OUTRO_DURATION){
         titleLeaving=true;$('finaleBrand').classList.add('out');
       }
 
-      // Rotating a rectangular WebGL surface normally exposes its corners.
-      // Overscale only as much as mathematically necessary, then compensate the
-      // Aladin FoV so the perceived framing stays nearly identical.
-      const cover=rotationCoverScale(rotation)*1.035;
-      const appliedScale=Math.max(baseScale,cover);
-      const extraScale=appliedScale/Math.max(.001,baseScale);
-      const renderFov=Math.min(360,fov*extraScale);
-
-      try{aladin.gotoRaDec(ra,dec);aladin.setFoV(renderFov)}catch(_){ }
-      if(stage)stage.style.transform=`scale(${appliedScale.toFixed(4)}) rotate(${rotation.toFixed(3)}deg)`;
+      const coverScale=finaleCoverScale(rotation);
+      const stageScale=coverScale*cinematicScale;
+      // Increase the internal FoV by the same cover factor so the apparent composition remains nearly unchanged.
+      const compensatedFov=Math.min(360,fov*coverScale);
+      try{aladin.gotoRaDec(ra,dec);aladin.setFoV(compensatedFov)}catch(_){ }
+      if(stage)stage.style.transform=`translateZ(0) scale(${stageScale.toFixed(4)}) rotate(${rotation.toFixed(3)}deg)`;
 
       if(elapsed<duration){finaleFrame=requestAnimationFrame(frame)}else{
         finaleFrame=0;
@@ -683,13 +672,12 @@ async function startJourney(){
   await moveToEarth(token,4800);
   if(token!==tourToken)return;
 
-  // Let the high-resolution survey settle around Earth before departing.
-  // Music keeps playing during this hold; no extra motion time is added overall.
-  await sleep(EARTH_HOLD_MS);
-  if(token!==tourToken)return;
-
   const introPromise=playSpecial('/audio/00-welcome.mp3',()=>prepareNarration(0));
-  await earthDeparture(token,EARTH_DEPARTURE_MS);
+  // Hold on the much tighter Earth view so DSS2 can resolve into the sharper tiles while music/narration are already running.
+  await sleep(4000);
+  if(token!==tourToken)return;
+  // 4s hold + 14s departure preserves the previous 18s Earth-to-flight timeline.
+  await earthDeparture(token,14000);
   if(token!==tourToken)return;
 
   $('topbar').classList.add('on');
