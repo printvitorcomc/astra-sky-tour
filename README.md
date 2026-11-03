@@ -1,6 +1,6 @@
-# ASTRA — recovered performance
+# ASTRA — recovered immersive
 
-Recovered source snapshot from `ASTRA-performance-optimized.zip`.
+Recovered source snapshot from `ASTRA-immersive-responsive.zip`.
 This commit was created during the archive import, not during original development.
 
 Run `python3 -m http.server 8080 --directory public` and open
