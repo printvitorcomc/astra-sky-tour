@@ -4,6 +4,12 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1,viewport-fit=cover,user-scalable=no" />
 <title>ASTRA — A Five-Star Space Tour</title>
+<link rel="preconnect" href="https://aladin.cds.unistra.fr" crossorigin>
+<link rel="preconnect" href="https://alasky.cds.unistra.fr" crossorigin>
+<link rel="dns-prefetch" href="//aladin.cds.unistra.fr">
+<link rel="dns-prefetch" href="//alasky.cds.unistra.fr">
+<link rel="preload" href="/audio/00-welcome.mp3" as="audio" type="audio/mpeg">
+<link rel="preload" href="/audio/01-antares.mp3" as="audio" type="audio/mpeg">
 <style>
 :root{
   --bg:#050505;
@@ -19,9 +25,10 @@
 html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
 button{font:inherit}
 button:focus-visible{outline:2px solid #fff;outline-offset:3px}
-.app{position:relative;width:100%;height:100svh;min-height:560px;background:#000;overflow:hidden}
-.sky-stage{position:absolute;inset:0;transform-origin:50% 50%;will-change:transform;backface-visibility:hidden}
+.app{position:relative;width:100%;height:100svh;min-height:560px;background:#000;overflow:hidden;contain:layout paint}
+.sky-stage{position:absolute;inset:0;overflow:hidden;background:#000;transform:translateZ(0);backface-visibility:hidden}
 #aladin-lite-div{position:absolute;inset:0;width:100%;height:100%;background:#000}
+.sky-preloader{position:fixed;left:-120vw;top:0;width:520px;height:340px;opacity:.001;pointer-events:none;contain:strict;z-index:-1}
 #aladin-lite-div:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.18),transparent 24%,transparent 72%,rgba(0,0,0,.30));z-index:3}
 #aladin-lite-div .aladin-location,#aladin-lite-div .aladin-coo-location,#aladin-lite-div .aladin-cooLocation,#aladin-lite-div .aladin-location-text{display:none!important}
 
@@ -35,7 +42,7 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .letter.active:after{background:#fff;transform:scaleX(1)}
 .letter.done{color:rgba(255,255,255,.68)}
 
-.card{position:absolute;z-index:35;left:0;right:0;bottom:0;padding:24px 22px calc(22px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:linear-gradient(180deg,rgba(6,6,6,.84),rgba(5,5,5,.96));backdrop-filter:blur(24px);transition:opacity .5s ease,transform .5s cubic-bezier(.2,.8,.2,1)}
+.card{will-change:transform,opacity;position:absolute;z-index:35;left:0;right:0;bottom:0;padding:24px 22px calc(22px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:linear-gradient(180deg,rgba(6,6,6,.84),rgba(5,5,5,.96));backdrop-filter:blur(24px);transition:opacity .5s ease,transform .5s cubic-bezier(.2,.8,.2,1)}
 .card.hidden{opacity:0;transform:translateY(24px);pointer-events:none}
 .kicker{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-weight:600;margin-bottom:12px}
 .star{font-size:clamp(36px,10vw,54px);line-height:.96;margin:0 0 10px;font-weight:500;letter-spacing:-.055em}
@@ -68,16 +75,16 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .endcard p{margin:0;color:var(--muted);font-size:14px;line-height:1.5;max-width:540px}
 .replay{margin-top:20px;border:1px solid var(--line);background:transparent;color:var(--text);border-radius:999px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer}
 
-.finale-overlay{position:absolute;z-index:34;inset:0;pointer-events:none;opacity:0;overflow:hidden;transition:opacity 1.2s ease;background:radial-gradient(circle at 50% 48%,rgba(0,0,0,.01) 0 32%,rgba(0,0,0,.10) 64%,rgba(0,0,0,.38) 100%)}
-.finale-overlay:before{content:"";position:absolute;inset:-2px;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 50% 50%,transparent 0 48%,rgba(0,0,0,.035) 64%,rgba(0,0,0,.18) 82%,rgba(0,0,0,.48) 100%);box-shadow:inset 0 0 min(16vw,190px) rgba(0,0,0,.34)}
+.finale-overlay{position:absolute;z-index:34;inset:0;pointer-events:none;opacity:0;overflow:hidden;transition:opacity 1.2s ease;background:radial-gradient(circle at 50% 48%,rgba(0,0,0,0) 0 38%,rgba(0,0,0,.055) 68%,rgba(0,0,0,.24) 100%)}
+.finale-overlay:before{content:"";position:absolute;inset:-2px;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 50% 50%,transparent 0 56%,rgba(0,0,0,.025) 72%,rgba(0,0,0,.12) 88%,rgba(0,0,0,.28) 100%);box-shadow:inset 0 0 min(13vw,150px) rgba(0,0,0,.20)}
 .finale-overlay.on{opacity:1}
-.finale-brand{position:absolute;z-index:2;left:50%;top:47%;width:min(92vw,980px);transform:translate(-50%,-40%) scale(.982);text-align:center;opacity:0;transition:opacity 5.8s cubic-bezier(.12,.72,.22,1),transform 5.8s cubic-bezier(.12,.72,.22,1)}
+.finale-brand{will-change:opacity,transform;position:absolute;z-index:2;left:50%;top:47%;width:min(92vw,980px);transform:translate(-50%,-40%) scale(.982);text-align:center;opacity:0;transition:opacity 6.2s cubic-bezier(.12,.72,.22,1),transform 6.2s cubic-bezier(.12,.72,.22,1)}
 .finale-brand.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
 .finale-brand.out{opacity:0;transform:translate(-50%,-54%) scale(1.015);transition-duration:3.4s}
 .finale-brand small{display:block;margin-bottom:13px;font-size:clamp(10px,1vw,12px);font-weight:600;letter-spacing:.19em;text-transform:uppercase;color:rgba(255,255,255,.58);text-shadow:0 2px 20px rgba(0,0,0,.9)}
 .finale-brand h3{margin:0;font-size:clamp(46px,6.7vw,96px);line-height:.94;font-weight:500;letter-spacing:-.065em;color:rgba(255,255,255,.96);text-shadow:0 4px 34px rgba(0,0,0,.82)}
 
-.gate{position:absolute;z-index:60;inset:0;display:flex;align-items:flex-end;background:linear-gradient(180deg,rgba(0,0,0,.08) 0%,rgba(0,0,0,.10) 34%,rgba(5,5,5,.68) 76%,rgba(5,5,5,.94) 100%);padding:28px 22px calc(32px + env(safe-area-inset-bottom));text-align:left;transition:opacity .65s ease;overflow:hidden}
+.gate{will-change:opacity;position:absolute;z-index:60;inset:0;display:flex;align-items:flex-end;background:linear-gradient(180deg,rgba(0,0,0,.08) 0%,rgba(0,0,0,.10) 34%,rgba(5,5,5,.68) 76%,rgba(5,5,5,.94) 100%);padding:28px 22px calc(32px + env(safe-area-inset-bottom));text-align:left;transition:opacity .65s ease;overflow:hidden}
 .gate:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 38%,transparent 0 28%,rgba(0,0,0,.10) 54%,rgba(0,0,0,.36) 100%);pointer-events:none}
 .gate:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.10),transparent 28%,transparent 72%,rgba(0,0,0,.10));pointer-events:none}
 .gate.off{opacity:0;pointer-events:none;visibility:hidden;transition:opacity .65s ease,visibility 0s linear .65s}
@@ -103,6 +110,7 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
   .gate{align-items:center;padding:52px 6vw}.gate-inner{max-width:900px}.gate h1{font-size:clamp(96px,13vw,180px);margin-bottom:36px}.gate p{font-size:18px;max-width:520px}.sound-note{font-size:20px;margin-top:28px}
 }
 @media (max-width:430px){
+  .sky-preloader{width:340px;height:230px}
   .topbar{top:max(18px,env(safe-area-inset-top));left:18px;right:18px;gap:14px}.progress{gap:12px}.letter{font-size:11px}.coords{font-size:9px;letter-spacing:.045em;max-width:58vw}
   .card{padding-left:18px;padding-right:18px}.gate{padding-left:18px;padding-right:18px}.gate h1{font-size:72px}.gate p{font-size:15px}.sound-note{font-size:18px}
 }
@@ -112,6 +120,7 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 <body>
 <div class="app">
   <div class="sky-stage" id="skyStage"><div id="aladin-lite-div" aria-label="Interactive astronomical sky survey"></div></div>
+  <div class="sky-preloader" id="aladin-preload-div" aria-hidden="true"></div>
   <div class="topbar" id="topbar">
     <div class="progress" aria-label="Tour progress">
       <div class="letter" data-step="0">A</div><div class="letter" data-step="1">S</div><div class="letter" data-step="2">T</div><div class="letter" data-step="3">R</div><div class="letter" data-step="4">A</div>
@@ -164,11 +173,11 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
       </div>
     </div>
   </div>
-  <audio id="musicTrack" preload="auto" autoplay playsinline loop></audio>
+  <audio id="musicTrack" preload="none" playsinline loop></audio>
 </div>
 
 <script src="./config.js"></script>
-<script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js" charset="utf-8"></script>
+<script src="https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js" charset="utf-8" fetchpriority="high"></script>
 <script>
 const stars=[
   {letter:'A',name:'Antares',type:'Red supergiant · Scorpius',ra:247.3520833333,dec:-26.4319444444,coords:'16:29:24.5  −26:25:55',fact1:['DISTANCE','~550 light-years'],fact2:['SCALE','Enormous'],audio:'/audio/01-antares.mp3',duration:18816,arrivalFov:1.25},
@@ -178,11 +187,12 @@ const stars=[
   {letter:'A',name:'Aldebaran',type:'Orange giant · Taurus',ra:68.98,dec:16.5091666667,coords:'04:35:55.2  +16:30:33',fact1:['DISTANCE','~65 light-years'],fact2:['KNOWN AS',"The Bull's eye"],audio:'/audio/05-aldebaran.mp3',duration:15936,arrivalFov:.78}
 ];
 
-let aladin=null,tourToken=0,currentIndex=-1,skyReady=false;
+let aladin=null,skyPreloader=null,tourToken=0,currentIndex=-1,skyReady=false;
 let musicTrack=null,narrationTrack=null,musicFadeFrame=null,narrationResolve=null;
-let gateMotionFrame=0,arrivalZoomFrame=0,finaleFrame=0,viewInteractionVersion=0;
+let gateMotionFrame=0,arrivalZoomFrame=0,finaleFrame=0,viewInteractionVersion=0,prewarmTimer=0,prewarmGeneration=0;
 const MUSIC_BASE=.19;
 const MUSIC_DUCK=.09;
+const SURVEY_URL='https://alasky.cds.unistra.fr/DSS/DSSColor/';
 const EARTH_ANCHOR={ra:266.4,dec:-29.0};
 const WELCOME_DURATION=28896;
 const OUTRO_DURATION=32448;
@@ -194,6 +204,10 @@ const soundtrackUrl=window.ASTRA_CONFIG?.soundtrackUrl;
 if(soundtrackUrl)$('musicTrack').src=soundtrackUrl;
 const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
 const easeOut=t=>1-Math.pow(1-t,3);
+const clamp01=t=>Math.max(0,Math.min(1,t));
+const smoothstep=t=>{t=clamp01(t);return t*t*(3-2*t)};
+const smootherstep=t=>{t=clamp01(t);return t*t*t*(t*(t*6-15)+10)};
+const smoothWindow=(t,a,b)=>smootherstep((t-a)/(b-a));
 const wrap360=x=>((x%360)+360)%360;
 const shortestDelta=(a,b)=>{let d=b-a;while(d>180)d-=360;while(d<-180)d+=360;return d};
 const reducedMotion=()=>window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -225,12 +239,13 @@ function expLerp(a,b,t){
 }
 
 function sleep(ms){return new Promise(resolve=>setTimeout(resolve,ms))}
+
 function interStarCenterProgress(raw){
-  const r=Math.max(0,Math.min(1,raw));
-  if(r<=.11)return .03*Math.pow(r/.11,2.15);
-  const t=Math.min(1,(r-.11)/.67);
-  return .03+.97*(1-Math.pow(1-t,3.2));
+  // Keep the departure composed, then move decisively while the view is wide.
+  // The destination is reached before the expensive high-resolution zoom begins.
+  return smoothWindow(clamp01(raw),.10,.58);
 }
+
 
 function setProgress(i){$('topbar').classList.add('on');document.querySelectorAll('.letter').forEach((el,j)=>{el.classList.toggle('active',j===i);el.classList.toggle('done',j<i)})}
 function clearProgress(){document.querySelectorAll('.letter').forEach(el=>el.classList.remove('active','done'))}
@@ -320,7 +335,7 @@ function playNarration(i){
     audio.volume=1;
     let finished=false;
     const finish=()=>{if(finished)return;finished=true;fadeMusicTo(MUSIC_BASE,1100);if(narrationTrack===audio)narrationTrack=null;if(narrationResolve===resolve)narrationResolve=null;resolve()};
-    audio.onplay=()=>{fadeMusicTo(MUSIC_DUCK,850);prepareNarration(i+1)};
+    audio.onplay=()=>{fadeMusicTo(MUSIC_DUCK,850);prepareNarration(i+1);warmTarget(i+1,900)};
     audio.onended=finish;
     audio.onerror=finish;
     audio.play().catch(finish);
@@ -342,6 +357,45 @@ function attemptMusicAutoplay(){
   musicTrack.volume=MUSIC_BASE;
   const p=musicTrack.play();
   if(p&&p.catch)p.catch(()=>{});
+}
+
+
+function primeAudioWhenIdle(){
+  const run=()=>{
+    if(!musicTrack)musicTrack=$('musicTrack');
+    if(musicTrack){musicTrack.preload='auto';try{musicTrack.load()}catch(_){}}
+    prepareSpecial('/audio/00-welcome.mp3','auto');
+    prepareNarration(0);
+  };
+  const conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+  if(conn&&conn.saveData)return;
+  if('requestIdleCallback' in window)requestIdleCallback(run,{timeout:2600});
+  else setTimeout(run,1800);
+}
+function ensureSkyPreloader(i=0){
+  if(skyPreloader||typeof A==='undefined'||!skyReady)return skyPreloader;
+  const s=stars[Math.max(0,Math.min(stars.length-1,i))];
+  try{
+    skyPreloader=A.aladin('#aladin-preload-div',{
+      survey:SURVEY_URL,target:`${s.ra} ${s.dec}`,fov:Math.max(3.6,arrivalFovFor(s)*3.2),projection:'TAN',cooFrame:'ICRS',
+      showCooGrid:false,showCooLocation:false,showReticle:false,showFrame:false,showLayersControl:false,
+      showProjectionControl:false,showFullscreenControl:false,showZoomControl:false,showGotoControl:false,showContextMenu:false
+    });
+  }catch(_){skyPreloader=null}
+  return skyPreloader;
+}
+function warmTarget(i,delay=0){
+  if(i<0||i>=stars.length||!skyReady)return;
+  const generation=++prewarmGeneration;
+  if(prewarmTimer)clearTimeout(prewarmTimer);
+  prewarmTimer=setTimeout(()=>{
+    if(generation!==prewarmGeneration)return;
+    const s=stars[i],pre=ensureSkyPreloader(i);if(!pre)return;
+    const finalFov=arrivalFovFor(s);
+    try{pre.setProjection('TAN');pre.gotoRaDec(s.ra,s.dec);pre.setFoV(Math.max(4.2,finalFov*3.6))}catch(_){return}
+    setTimeout(()=>{if(generation!==prewarmGeneration)return;try{pre.gotoRaDec(s.ra,s.dec);pre.setFoV(Math.max(2.1,finalFov*1.95))}catch(_){ }},520);
+    setTimeout(()=>{if(generation!==prewarmGeneration)return;try{pre.gotoRaDec(s.ra,s.dec);pre.setFoV(Math.max(1.05,finalFov*1.18))}catch(_){ }},1180);
+  },delay);
 }
 
 function cancelArrivalZoom(){
@@ -378,17 +432,23 @@ function gentleArrivalZoom(target,token,duration=9000){
 
 
 function stopGateSkyMotion(){if(gateMotionFrame)cancelAnimationFrame(gateMotionFrame);gateMotionFrame=0}
+
 function startGateSkyMotion(){
   stopGateSkyMotion();if(!aladin||reducedMotion()||$('gate').classList.contains('off'))return;
   const w=Math.max(320,innerWidth||320),h=Math.max(480,innerHeight||480),aspect=w/h;
   const baseFov=aspect>=1.45?22:aspect>=.95?25:28;
   const start=performance.now();let last=0;
-  try{aladin.setProjection('TAN');aladin.gotoRaDec(EARTH_ANCHOR.ra,EARTH_ANCHOR.dec);aladin.setFoV(baseFov)}catch(_){}
+  try{aladin.setProjection('TAN');aladin.setRotation(0);aladin.gotoRaDec(EARTH_ANCHOR.ra,EARTH_ANCHOR.dec);aladin.setFoV(baseFov)}catch(_){}
   function frame(now){
     if(!skyReady||$('gate').classList.contains('off')){gateMotionFrame=0;return}
-    if(now-last<55){gateMotionFrame=requestAnimationFrame(frame);return}last=now;
-    const t=(now-start)/42000,cycle=t-Math.floor(t),wave=.5-.5*Math.cos(cycle*Math.PI*2);
-    const fov=baseFov+7*wave,ra=EARTH_ANCHOR.ra+1.0*Math.sin(t*Math.PI*1.2),dec=EARTH_ANCHOR.dec+.48*Math.sin(t*Math.PI*.78);
+    if(now-last<46){gateMotionFrame=requestAnimationFrame(frame);return}last=now;
+    const elapsed=now-start;
+    // Give high-resolution DSS2 tiles a clean, motionless window first.
+    if(elapsed<1800){gateMotionFrame=requestAnimationFrame(frame);return}
+    const t=(elapsed-1800)/68000;
+    const wave=.5-.5*Math.cos(t*Math.PI*2);
+    const fov=baseFov+1.6*wave;
+    const ra=EARTH_ANCHOR.ra+.18*Math.sin(t*Math.PI*1.1),dec=EARTH_ANCHOR.dec+.10*Math.sin(t*Math.PI*.73);
     try{aladin.gotoRaDec(ra,dec);aladin.setFoV(fov)}catch(_){}
     gateMotionFrame=requestAnimationFrame(frame);
   }
@@ -404,7 +464,7 @@ function moveToEarth(token,duration=4800){
     const targetFov=aspect>=1.45?.42:aspect>=.95?.48:.58;
     const start=performance.now();let last=0,shown=false;
     earth.classList.remove('on','leaving');
-    try{aladin.setProjection('TAN')}catch(_){}
+    try{aladin.setProjection('TAN');aladin.setRotation(0)}catch(_){}
     function frame(now){
       if(token!==tourToken){earth.classList.remove('on','leaving');resolve();return}
       const raw=Math.min(1,(now-start)/duration),q=ease(raw);
@@ -428,7 +488,7 @@ function earthDeparture(token,duration=27000){
     const startFov=Math.max(.8,Number(pair[0])||1.5);
     const endFov=Math.min(profile.cruise*.78,56),start=performance.now();let last=0,faded=false;
     earth.classList.remove('leaving');earth.classList.add('on');
-    try{aladin.setProjection('TAN');aladin.gotoRaDec(EARTH_ANCHOR.ra,EARTH_ANCHOR.dec)}catch(_){}
+    try{aladin.setProjection('TAN');aladin.setRotation(0);aladin.gotoRaDec(EARTH_ANCHOR.ra,EARTH_ANCHOR.dec)}catch(_){}
     function frame(now){
       if(token!==tourToken){earth.classList.remove('on','leaving');resolve();return}
       const raw=Math.min(1,(now-start)/duration),q=ease(raw);
@@ -471,7 +531,8 @@ function zoomOutToOverview(token,duration=18500){
   })
 }
 
-function flyTo(target,token,duration,onApproach,voiceAtOverride=null,curveMode='standard'){
+
+function flyTo(target,token,flightDuration,settleDuration,{onApproach=null,onCard=null,voiceAt=null,curveMode='interstar'}={}){
   return new Promise(resolve=>{
     cancelArrivalZoom();
     if(!aladin||token!==tourToken){resolve();return}
@@ -479,40 +540,62 @@ function flyTo(target,token,duration,onApproach,voiceAtOverride=null,curveMode='
     const startRa=center[0],startDec=center[1],dRa=shortestDelta(startRa,target.ra),dDec=target.dec-startDec;
     const fovPair=(aladin.getFov&&aladin.getFov())||[profile.end,profile.end];
     const currentFov=Number(fovPair[0])||profile.end;
-    const startFov=Math.min(profile.maxStart,Math.max(1.2,currentFov));
-    const cruise=profile.cruise,endFov=profile.end,start=performance.now();
-    const voiceAt=voiceAtOverride==null?profile.voiceAt:voiceAtOverride;
-    let lastRender=0,voiceStarted=false;
-    try{
-      aladin.setProjection('TAN');
-      if(currentFov>profile.maxStart)aladin.setFoV(startFov);
-    }catch(_){}
+    const startFov=Math.min(profile.maxStart,Math.max(.55,currentFov));
+    const cruise=profile.cruise,cardFov=profile.end,finalFov=arrivalFovFor(target);
+    const total=flightDuration+settleDuration,start=performance.now();
+    const voicePoint=voiceAt==null?profile.voiceAt:voiceAt;
+    const frameInterval=(innerWidth>=900&&!matchMedia('(pointer:coarse)').matches)?16:22;
+    let lastRender=0,voiceStarted=false,cardShown=false,settleInteractionVersion=null;
+    try{aladin.setProjection('TAN');aladin.setRotation(0);if(currentFov>profile.maxStart)aladin.setFoV(startFov)}catch(_){}
+
     function frame(now){
       if(token!==tourToken){resolve();return}
-      const raw=Math.min(1,(now-start)/duration);
-      if(!voiceStarted&&raw>=voiceAt){voiceStarted=true;try{onApproach&&onApproach()}catch(_){}}
-      if(raw<1&&now-lastRender<33){requestAnimationFrame(frame);return}lastRender=now;
-      const p=curveMode==='interstar'?interStarCenterProgress(raw):centerProgress(raw),ra=wrap360(startRa+dRa*p),dec=startDec+dDec*p;
-      let fov;
-      if(raw<.27){
-        // Keep the same phase length, but leave the current star more gently.
-        const t=raw/.27;
-        const q=curveMode==='interstar'?ease(t):easeOut(t);
-        fov=startFov+(cruise-startFov)*q;
+      const elapsed=Math.min(total,now-start);
+      if(elapsed<total&&now-lastRender<frameInterval){requestAnimationFrame(frame);return}lastRender=now;
+
+      let ra,dec,fov;
+      if(elapsed<=flightDuration){
+        const u=clamp01(elapsed/flightDuration);
+        if(!voiceStarted&&u>=voicePoint){voiceStarted=true;try{onApproach&&onApproach()}catch(_){}}
+
+        // Camera center moves while the FoV is broad. This avoids fetching expensive high-order
+        // HiPS tiles along the entire path and concentrates sharp-tile requests at the destination.
+        const cp=curveMode==='interstar'?interStarCenterProgress(u):smoothWindow(u,.06,.60);
+        ra=wrap360(startRa+dRa*cp);dec=startDec+dDec*cp;
+
+        if(u<.32){
+          // Jerk-limited departure: noticeably gentler first frames, same overall departure phase.
+          const q=smootherstep(Math.pow(u/.32,1.12));
+          fov=expLerp(startFov,cruise,q);
+        }else if(u<.54){
+          // Wide, fast transfer. Holding FoV here is both cinematic and network-efficient.
+          fov=cruise;
+        }else{
+          // Destination is already essentially centered before the detailed zoom begins.
+          const q=smootherstep((u-.54)/.46);
+          fov=expLerp(cruise,cardFov,q);
+        }
       }else{
-        // Intentionally unchanged: arrival zoom into the next star keeps its existing timing/feel.
-        const q=ease((raw-.27)/.73);fov=cruise+(endFov-cruise)*q;
+        if(!cardShown){cardShown=true;settleInteractionVersion=viewInteractionVersion;try{onCard&&onCard()}catch(_){}}
+        if(settleInteractionVersion!==null&&viewInteractionVersion!==settleInteractionVersion){resolve();return}
+        const s=clamp01((elapsed-flightDuration)/Math.max(1,settleDuration));
+        ra=target.ra;dec=target.dec;
+        // One continuous camera move after the card appears; zero velocity/acceleration at both ends.
+        fov=expLerp(cardFov,finalFov,smootherstep(s));
       }
+
       try{aladin.gotoRaDec(ra,dec);aladin.setFoV(fov)}catch(_){}
-      if(raw<1)requestAnimationFrame(frame);else{
+      if(elapsed<total){requestAnimationFrame(frame)}else{
         if(!voiceStarted){voiceStarted=true;try{onApproach&&onApproach()}catch(_){}}
-        try{aladin.gotoRaDec(target.ra,target.dec);aladin.setFoV(endFov)}catch(_){}
-        resolve()
+        if(!cardShown){cardShown=true;try{onCard&&onCard()}catch(_){}}
+        try{aladin.gotoRaDec(target.ra,target.dec);aladin.setFoV(finalFov)}catch(_){}
+        resolve();
       }
     }
     requestAnimationFrame(frame)
   })
 }
+
 
 
 async function arriveAt(i,options={}){
@@ -524,6 +607,7 @@ async function arriveAt(i,options={}){
 
   const initialLeg=Boolean(options.initialLeg);
   const flightDuration=initialLeg?14000:Math.max(9800,Math.min(13200,Math.round(s.duration*.66)));
+  const settleDuration=Math.min(10500,Math.max(8200,Math.round(s.duration*.58)));
   const waitForAudio=options.waitForAudio||null;
   let narrationStarted=false,narrationPromise=null;
   const startVoice=()=>{
@@ -535,17 +619,24 @@ async function arriveAt(i,options={}){
       return playNarration(i);
     })();
   };
+  const showCard=()=>{
+    if(token!==tourToken)return;
+    setTravel(false);renderStar(i);
+  };
 
-  await flyTo(s,token,flightDuration,startVoice,initialLeg?.78:null,initialLeg?'standard':'interstar');
+  const cameraPromise=flyTo(s,token,flightDuration,settleDuration,{
+    onApproach:startVoice,onCard:showCard,
+    voiceAt:initialLeg?.78:null,
+    curveMode:initialLeg?'standard':'interstar'
+  });
+  await cameraPromise;
   if(token!==tourToken)return;
   if(!narrationStarted)startVoice();
-
-  setTravel(false);renderStar(i);
-  gentleArrivalZoom(s,token,Math.min(10500,Math.max(8200,Math.round(s.duration*.58))));
   if(narrationPromise)await narrationPromise;
   if(token!==tourToken)return;
   showNext();
 }
+
 
 
 function resetSkyStage(){
@@ -553,6 +644,7 @@ function resetSkyStage(){
   finaleFrame=0;
   const stage=$('skyStage');
   if(stage){stage.style.transform='';stage.style.filter=''}
+  try{if(aladin)aladin.setRotation(0)}catch(_){}
 }
 function hideFinaleOverlay(){
   finaleTimers.forEach(id=>clearTimeout(id));
@@ -564,72 +656,64 @@ function hideFinaleOverlay(){
 function finaleEaseIn(t){return t*t*t}
 function finaleEaseOut(t){return 1-Math.pow(1-t,3)}
 
-function finaleCoverScale(rotationDeg){
-  // Exact overscan needed for a rotated viewport-sized rectangle, plus a safety margin.
-  const w=Math.max(1,window.innerWidth||1),h=Math.max(1,window.innerHeight||1),aspect=w/h;
-  const rad=(rotationDeg%180)*Math.PI/180,c=Math.abs(Math.cos(rad)),s=Math.abs(Math.sin(rad));
-  const needX=c+(1/aspect)*s,needY=c+aspect*s;
-  const required=Math.max(1,needX,needY);
-  // Safety grows only when rotation actually needs overscan, so 0/360° resolves cleanly back to scale(1).
-  return 1+(required-1)*1.08;
-}
+
 function animateFinale(token,duration=OUTRO_DURATION){
   return new Promise(resolve=>{
     cancelArrivalZoom();resetSkyStage();
     if(!aladin||token!==tourToken){resolve();return}
-    const stage=$('skyStage');
     const center=aladin.getRaDec(),pair=(aladin.getFov&&aladin.getFov())||[2,2];
     const startRa=center[0],startDec=center[1],startFov=Math.max(.7,Number(pair[0])||2);
     const dRaToGalaxy=shortestDelta(startRa,EARTH_ANCHOR.ra),dDecToGalaxy=EARTH_ANCHOR.dec-startDec;
     const start=performance.now();let last=0,ait=false,titleShown=false,titleLeaving=false,travelChanged=false;
+    const frameInterval=(innerWidth>=900&&!matchMedia('(pointer:coarse)').matches)?16:22;
     $('finaleOverlay').classList.add('on');
-    try{aladin.setProjection('TAN')}catch(_){ }
+    try{aladin.setProjection('TAN');aladin.setRotation(0)}catch(_){ }
+
     function frame(now){
       if(token!==tourToken){resetSkyStage();resolve();return}
-      const elapsed=Math.min(duration,now-start),raw=elapsed/duration;
-      if(elapsed<duration&&now-last<32){finaleFrame=requestAnimationFrame(frame);return}last=now;
+      const elapsed=Math.min(duration,now-start);
+      if(elapsed<duration&&now-last<frameInterval){finaleFrame=requestAnimationFrame(frame);return}last=now;
 
-      let ra,dec,fov,rotation,cinematicScale;
-      if(elapsed<3400){
-        const p=elapsed/3400,q=ease(p),spin=Math.pow(elapsed/11000,3.18);
+      let ra,dec,fov,rotation;
+      if(elapsed<3000){
+        // Establish the orbit: a controlled pull-back toward the Milky Way, almost no spin yet.
+        const p=elapsed/3000,q=smootherstep(p);
         ra=wrap360(startRa+dRaToGalaxy*q);dec=startDec+dDecToGalaxy*q;
-        fov=expLerp(startFov,46,q);rotation=250*spin;cinematicScale=1+.10*q;
+        fov=expLerp(startFov,30,q);
+        rotation=7*Math.pow(p,3.4);
       }else if(elapsed<11000){
-        const p=(elapsed-3400)/7600,q=ease(p),spin=Math.pow(elapsed/11000,3.18);
+        // Native sky rotation — not a rotated DOM canvas. It remains edge-to-edge at every angle.
+        const p=(elapsed-3000)/8000;
+        const q=smootherstep(p);
         ra=EARTH_ANCHOR.ra;dec=EARTH_ANCHOR.dec;
-        fov=expLerp(46,7.2,q);rotation=250*spin;cinematicScale=1.10+.18*q;
+        fov=expLerp(30,6.9,q);
+        // Starts almost imperceptibly, then builds real angular momentum into the reveal.
+        rotation=7+(243)*Math.pow(p,3.05);
       }else if(elapsed<18600){
-        // Preserve the post-reveal movement that already felt right.
-        const p=(elapsed-11000)/7600,q=finaleEaseOut(p);
+        // Keep the post-reveal movement elegant: momentum continues, then begins to release.
+        const p=(elapsed-11000)/7600,q=smootherstep(p);
         ra=EARTH_ANCHOR.ra;dec=EARTH_ANCHOR.dec;
-        fov=expLerp(7.2,5.4,q);rotation=250+(315-250)*q;cinematicScale=1.28-.06*q;
+        fov=expLerp(6.9,5.4,q);
+        rotation=250+(315-250)*smootherstep(p);
       }else{
-        const p=(elapsed-18600)/(duration-18600),q=ease(p),slow=finaleEaseOut(p);
+        const p=(elapsed-18600)/(duration-18600),q=smootherstep(p);
         const dRa=shortestDelta(EARTH_ANCHOR.ra,0);
         ra=wrap360(EARTH_ANCHOR.ra+dRa*q);dec=EARTH_ANCHOR.dec*(1-q);
-        fov=expLerp(5.4,360,q);rotation=315+(360-315)*slow;cinematicScale=1.22-.22*q;
+        fov=expLerp(5.4,360,q);
+        rotation=315+(360-315)*smootherstep(p);
         if(!travelChanged){travelChanged=true;setTravel(true,'Revealing the full sky')}
-        if(!ait&&p>.47){ait=true;try{aladin.setProjection('AIT')}catch(_){ }}
+        // Switch projection only once the view is already broad, making the topology change unobtrusive.
+        if(!ait&&fov>=118){ait=true;try{aladin.setProjection('AIT')}catch(_){ }}
       }
 
-      if(!titleShown&&elapsed>=10500){
-        titleShown=true;$('finaleBrand').classList.add('on');
-      }
-      if(!titleLeaving&&elapsed>=24200){
-        titleLeaving=true;$('finaleBrand').classList.add('out');
-      }
+      if(!titleShown&&elapsed>=10500){titleShown=true;$('finaleBrand').classList.add('on')}
+      if(!titleLeaving&&elapsed>=24200){titleLeaving=true;$('finaleBrand').classList.add('out')}
 
-      const coverScale=finaleCoverScale(rotation);
-      const stageScale=coverScale*cinematicScale;
-      // Increase the internal FoV by the same cover factor so the apparent composition remains nearly unchanged.
-      const compensatedFov=Math.min(360,fov*coverScale);
-      try{aladin.gotoRaDec(ra,dec);aladin.setFoV(compensatedFov)}catch(_){ }
-      if(stage)stage.style.transform=`translateZ(0) scale(${stageScale.toFixed(4)}) rotate(${rotation.toFixed(3)}deg)`;
+      try{aladin.gotoRaDec(ra,dec);aladin.setFoV(fov);aladin.setRotation(rotation)}catch(_){ }
 
       if(elapsed<duration){finaleFrame=requestAnimationFrame(frame)}else{
         finaleFrame=0;
-        try{aladin.setProjection('AIT');aladin.gotoRaDec(0,0);aladin.setFoV(360)}catch(_){ }
-        if(stage)stage.style.transform='';
+        try{aladin.setProjection('AIT');aladin.gotoRaDec(0,0);aladin.setFoV(360);aladin.setRotation(0)}catch(_){ }
         resolve();
       }
     }
@@ -674,7 +758,10 @@ async function startJourney(){
 
   const introPromise=playSpecial('/audio/00-welcome.mp3',()=>prepareNarration(0));
   // Hold on the much tighter Earth view so DSS2 can resolve into the sharper tiles while music/narration are already running.
-  await sleep(4000);
+  await sleep(1800);
+  if(token!==tourToken)return;
+  warmTarget(0,0);
+  await sleep(2200);
   if(token!==tourToken)return;
   // 4s hold + 14s departure preserves the previous 18s Earth-to-flight timeline.
   await earthDeparture(token,14000);
@@ -694,14 +781,16 @@ function init(){
   preloadNarrations();
   if(typeof A==='undefined'){$('loader').innerHTML='<div class="loader-inner"><h1>ASTRA</h1><p>The sky viewer could not load. Please reload.</p></div>';return}
   A.init.then(()=>{
-    aladin=A.aladin('#aladin-lite-div',{survey:'P/DSS2/color',target:'17 45 40 -29 00 28',fov:34,projection:'TAN',cooFrame:'ICRS',showCooGrid:false,showCooLocation:false,showReticle:false,showFrame:false,showLayersControl:false,showProjectionControl:false,showFullscreenControl:false,showZoomControl:false,showGotoControl:false,showContextMenu:false});
-    addMarkers();skyReady=true;prepareSpecial('/audio/00-welcome.mp3','auto');attemptMusicAutoplay();setTimeout(()=>{$('loader').classList.add('off');startGateSkyMotion()},650)
+    aladin=A.aladin('#aladin-lite-div',{survey:SURVEY_URL,target:'17 45 40 -29 00 28',fov:34,projection:'TAN',cooFrame:'ICRS',showCooGrid:false,showCooLocation:false,showReticle:false,showFrame:false,showLayersControl:false,showProjectionControl:false,showFullscreenControl:false,showZoomControl:false,showGotoControl:false,showContextMenu:false});
+    addMarkers();skyReady=true;primeAudioWhenIdle();setTimeout(()=>{$('loader').classList.add('off');startGateSkyMotion()},650)
   }).catch(()=>{$('loader').innerHTML='<div class="loader-inner"><h1>ASTRA</h1><p>The astronomical viewer hit an error. Please reload.</p></div>'})
 }
 
 $('startBtn').addEventListener('click',startJourney);
 $('nextBtn').addEventListener('click',goNext);
-$('replay').addEventListener('click',()=>{$('endcard').classList.remove('on');$('gate').classList.remove('off');$('topbar').classList.remove('on');clearProgress();setCoords('');currentIndex=-1;stopNarration();cancelArrivalZoom();hideFinaleOverlay();try{aladin.setProjection('TAN');aladin.gotoRaDec(EARTH_ANCHOR.ra,EARTH_ANCHOR.dec);aladin.setFoV(25)}catch(_){}startGateSkyMotion()});
+$('nextBtn').addEventListener('pointerenter',()=>warmTarget(currentIndex+1,0),{passive:true});
+$('nextBtn').addEventListener('touchstart',()=>warmTarget(currentIndex+1,0),{passive:true});
+$('replay').addEventListener('click',()=>{$('endcard').classList.remove('on');$('gate').classList.remove('off');$('topbar').classList.remove('on');clearProgress();setCoords('');currentIndex=-1;stopNarration();cancelArrivalZoom();hideFinaleOverlay();try{aladin.setProjection('TAN');aladin.setRotation(0);aladin.gotoRaDec(EARTH_ANCHOR.ra,EARTH_ANCHOR.dec);aladin.setFoV(25)}catch(_){}startGateSkyMotion()});
 const skyEl=$('aladin-lite-div');
 ['pointerdown','touchstart'].forEach(type=>skyEl.addEventListener(type,noteViewInteraction,{passive:true}));
 skyEl.addEventListener('wheel',noteViewInteraction,{passive:true});
