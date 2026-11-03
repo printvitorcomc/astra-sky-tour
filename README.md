@@ -1,6 +1,6 @@
-# ASTRA — recovered v6
+# ASTRA — recovered v7
 
-Recovered source snapshot from `ASTRA-state-of-the-art-v6.zip`.
+Recovered source snapshot from `ASTRA-state-of-the-art-v7.zip`.
 This commit was created during the archive import, not during original development.
 
 Run `python3 -m http.server 8080 --directory public` and open
