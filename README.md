@@ -1,6 +1,6 @@
-# ASTRA — recovered updated
+# ASTRA — recovered performance
 
-Recovered source snapshot from `ASTRA-updated-project.zip`.
+Recovered source snapshot from `ASTRA-performance-optimized.zip`.
 This commit was created during the archive import, not during original development.
 
 Run `python3 -m http.server 8080 --directory public` and open

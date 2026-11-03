@@ -56,8 +56,9 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 
 .warp{position:absolute;z-index:25;inset:0;pointer-events:none;opacity:0;transition:opacity 1s ease;background:radial-gradient(circle at 50% 48%,transparent 0 42%,rgba(0,0,0,.04) 58%,rgba(0,0,0,.38) 100%)}
 .warp.on{opacity:1}
-.warp:before{content:"";position:absolute;inset:-10%;background:radial-gradient(ellipse at 50% 50%,rgba(255,255,255,.055),transparent 36%);filter:blur(28px);animation:drift 8s ease-in-out infinite alternate}
-.warp:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0 43%,rgba(255,255,255,.016) 50%,transparent 57%);transform:scaleX(.75);animation:sweep 9s ease-in-out infinite}
+.warp:before{content:"";position:absolute;inset:-10%;background:radial-gradient(ellipse at 50% 50%,rgba(255,255,255,.055),transparent 36%);filter:blur(28px);animation:drift 8s ease-in-out infinite alternate;animation-play-state:paused}
+.warp:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent 0 43%,rgba(255,255,255,.016) 50%,transparent 57%);transform:scaleX(.75);animation:sweep 9s ease-in-out infinite;animation-play-state:paused}
+.warp.on:before,.warp.on:after{animation-play-state:running}
 @keyframes drift{from{transform:scale(.92);opacity:.35}to{transform:scale(1.08);opacity:.7}}
 @keyframes sweep{0%,100%{transform:translateX(-8%) scaleX(.72);opacity:.15}50%{transform:translateX(8%) scaleX(1.05);opacity:.5}}
 
@@ -71,7 +72,8 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .gate:before{content:"";position:absolute;inset:-20%;opacity:.58;background-image:radial-gradient(circle,rgba(255,255,255,.78) 0 1px,transparent 1.4px),radial-gradient(circle,rgba(255,255,255,.34) 0 .7px,transparent 1.1px),radial-gradient(circle,rgba(255,255,255,.18) 0 .55px,transparent .9px);background-size:97px 97px,151px 151px,223px 223px;background-position:11px 17px,57px 73px,31px 109px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.9),rgba(0,0,0,.18) 88%);animation:starDrift 32s linear infinite}
 .gate:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 52% 33%,rgba(255,255,255,.045),transparent 33%),linear-gradient(180deg,transparent 40%,rgba(5,5,5,.48) 74%,#050505 100%);pointer-events:none}
 @keyframes starDrift{from{transform:translate3d(0,0,0)}to{transform:translate3d(-36px,22px,0)}}
-.gate.off{opacity:0;pointer-events:none}
+.gate.off{opacity:0;pointer-events:none;visibility:hidden;transition:opacity .65s ease,visibility 0s linear .65s}
+.gate.off:before{animation-play-state:paused}
 .gate-inner{position:relative;z-index:2;width:100%;max-width:720px}
 .gate-eyebrow{font-size:12px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:18px}
 .gate h1{font-size:clamp(68px,21vw,118px);font-weight:500;line-height:.78;letter-spacing:-.075em;margin:0 0 26px}
@@ -149,7 +151,7 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
       </div>
     </div>
   </div>
-  <audio id="musicTrack" preload="auto" loop></audio>
+  <audio id="musicTrack" preload="none" loop></audio>
 </div>
 
 <script src="./config.js"></script>
@@ -180,9 +182,21 @@ function setTravel(on,text='Travelling'){$('travel').classList.toggle('on',on);$
 function renderStar(i){const s=stars[i];$('stopLabel').textContent=`STOP ${i+1} · ${s.letter}`;$('starName').textContent=s.name;$('starType').textContent=s.type;$('fact1Label').textContent=s.fact1[0];$('fact1').textContent=s.fact1[1];$('fact2Label').textContent=s.fact2[0];$('fact2').textContent=s.fact2[1];$('card').classList.remove('hidden')}
 function showNext(){const next=$('nextBtn');if(currentIndex<stars.length-1)next.textContent=`Continue to ${stars[currentIndex+1].name}`;else next.textContent='Finish the journey';next.classList.add('on')}
 
-function preloadNarrations(){
-  stars.forEach((s,i)=>{const a=new Audio(s.audio);a.preload='auto';a.load();narrationCache.set(i,a)})
+function prepareNarration(i){
+  if(i<0||i>=stars.length)return null;
+  if(narrationCache.has(i))return narrationCache.get(i);
+  const a=new Audio(stars[i].audio);
+  a.preload='auto';
+  a.load();
+  narrationCache.set(i,a);
+  return a;
 }
+function preloadNarrations(){
+  // Only the first narration is needed before the journey starts.
+  // Each following file is prefetched while the current stop is playing.
+  prepareNarration(0);
+}
+
 function stopNarration(){
   if(narrationTrack){try{narrationTrack.pause();narrationTrack.currentTime=0}catch(_){}}
   narrationTrack=null;
@@ -199,22 +213,29 @@ function fadeMusicTo(target,duration=900){
 function playNarration(i){
   return new Promise(resolve=>{
     stopNarration();
-    let audio=narrationCache.get(i);
-    if(!audio){audio=new Audio(stars[i].audio);audio.preload='auto';narrationCache.set(i,audio)}
+    const audio=prepareNarration(i)
     narrationTrack=audio;
     narrationResolve=resolve;
     try{audio.currentTime=0}catch(_){}
     audio.volume=1;
     let finished=false;
     const finish=()=>{if(finished)return;finished=true;fadeMusicTo(.17,1100);if(narrationTrack===audio)narrationTrack=null;if(narrationResolve===resolve)narrationResolve=null;resolve()};
-    audio.onplay=()=>fadeMusicTo(.035,850);
+    audio.onplay=()=>{fadeMusicTo(.035,850);prepareNarration(i+1)};
     audio.onended=finish;
     audio.onerror=finish;
     audio.play().catch(finish);
   });
 }
 function setMusicLevel(v){fadeMusicTo(v,900)}
-function startMusic(){if(!musicTrack)musicTrack=$('musicTrack');if(!musicTrack||!musicTrack.getAttribute('src'))return;musicTrack.volume=.17;musicTrack.play().catch(()=>{})}
+function startMusic(){
+  if(!musicTrack)musicTrack=$('musicTrack');
+  if(!musicTrack||!musicTrack.getAttribute('src'))return;
+  // Stream the soundtrack only after the user starts the journey.
+  // This keeps ~3 MB off the initial page load while preserving autoplay permission.
+  musicTrack.preload='auto';
+  musicTrack.volume=.17;
+  musicTrack.play().catch(()=>{});
+}
 
 function flyTo(target,token,duration){
   return new Promise(resolve=>{
@@ -223,10 +244,16 @@ function flyTo(target,token,duration){
     const startRa=center[0],startDec=center[1],dRa=shortestDelta(startRa,target.ra),dDec=target.dec-startDec;
     const currentFov=(aladin.getFov&&aladin.getFov()[0])||6;
     const startFov=Math.min(150,Math.max(6,currentFov)),cruise=132,endFov=4.6,start=performance.now();
+    let lastRender=0;
     try{aladin.setProjection('TAN')}catch(_){}
     function frame(now){
       if(token!==tourToken){resolve();return}
-      const raw=Math.min(1,(now-start)/duration),p=ease(raw);
+      const raw=Math.min(1,(now-start)/duration);
+      // Aladin updates are relatively expensive. ~30fps is visually indistinguishable
+      // for this deliberately slow motion and cuts coordinate/FoV work substantially.
+      if(raw<1&&now-lastRender<33){requestAnimationFrame(frame);return}
+      lastRender=now;
+      const p=ease(raw);
       const ra=wrap360(startRa+dRa*p),dec=startDec+dDec*p;
       let fov;
       if(raw<.43){const q=ease(raw/.43);fov=startFov+(cruise-startFov)*q}
