@@ -1,6 +1,6 @@
-# ASTRA — recovered earth-intro
+# ASTRA — recovered camera-audio
 
-Recovered source snapshot from `ASTRA-earth-intro-finale.zip`.
+Recovered source snapshot from `ASTRA-camera-audio-refined.zip`.
 This commit was created during the archive import, not during original development.
 
 Run `python3 -m http.server 8080 --directory public` and open
