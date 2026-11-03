@@ -1,4 +1,4 @@
-/* ASTRA v7 — in-place finale refinement. No renderer or imagery replacement.
+/* ASTRA v8 — full-bleed finale refinement. No renderer or imagery replacement.
  * Aladin Lite remains the sole sky renderer. Only its sky surface is transformed;
  * every label, hit target, credit and piece of interface text stays in screen space.
  */
@@ -21,55 +21,81 @@
     return coordinate(a.map((v,i)=>v*x+b[i]*y));
   }
 
-  // One C2-continuous, monotone logarithmic lens curve. No intermediate stops,
-  // reversals, piecewise speed resets, or late projection switch.
+  // v8 keeps the v7 continuous camera language, but restores some of the v6
+  // emotional energy: a stronger pan through the Milky Way and a broader,
+  // still-smooth rotation arc. The end state is full-bleed rather than boxed.
+  const GALACTIC_CENTER=[266.4,-29.0];
   function sampleCamera(t,start,layout){
     t=clamp(t,0,1);
     const q=smooth(t);
-    // A single optical scale drives BOTH the lens and the final framing. Keep
-    // the overscan surface at full size until the complete ellipse fits inside
-    // its canvas; shrinking it earlier exposes rotating rectangular corners.
-    // At the native 360-degree limit, CSS continues the exact same zoom curve.
-    const opticalFov=Math.exp(mix(Math.log(start.fov),Math.log(360/layout.scale),q));
-    const fov=Math.min(360,opticalFov),surfaceScale=Math.min(1,360/opticalFov);
-    const pan=smooth((Math.log(fov)-Math.log(Math.max(44,start.fov)))/(Math.log(360)-Math.log(Math.max(44,start.fov))||1));
-    const center=slerpRaDec(start.center,[0,0],pan);
+    const fov=Math.exp(mix(Math.log(Math.max(.02,start.fov)),Math.log(360),q));
+
+    // One continuous two-anchor spherical path: first toward the Milky Way core,
+    // then into the all-sky center. Both blends are quintic-smoothed.
+    const towardGalaxy=smooth(clamp(q/.62,0,1));
+    const leaveGalaxy=smooth(clamp((q-.36)/.64,0,1));
+    const galaxy=slerpRaDec(start.center,GALACTIC_CENTER,towardGalaxy);
+    const center=slerpRaDec(galaxy,[0,0],leaveGalaxy);
+
+    const flourish=(layout.portrait?-17:-29)*Math.pow(Math.sin(Math.PI*q),2);
+    const rotation=layout.finalRotation*q+flourish;
+    // On portrait, the native sky surface starts landscape and is scaled up
+    // enough to cover the tall viewport before it rotates. The same smooth
+    // zoom-out carries it into its exact full-bleed final scale.
+    const scale=mix(layout.startScale,layout.finalScale,q);
+
     return{
-      fov,center,
-      rotation:layout.portrait?90*q:-12*Math.pow(Math.sin(Math.PI*q),2),
-      scale:surfaceScale,
-      cx:mix(layout.width/2,layout.cx,q),cy:mix(layout.height/2,layout.cy,q),
-      side:layout.side,progress:t
+      fov,center,rotation,scale,
+      cx:layout.width/2,cy:layout.height/2,
+      surfaceWidth:layout.surfaceWidth,surfaceHeight:layout.surfaceHeight,
+      progress:t
     };
   }
 
   function getLayout(width,height,cardWidth,cardHeight){
     const portrait=width<height*.95,gutter=width<720?18:32;
     const top=width<720?64:72;
-    let bounds;
-    if(!portrait&&height<620){
-      // Short landscape screens: put the map beside, not behind, the end card.
-      bounds={left:Math.min(cardWidth+gutter*2,width*.50),top:54,right:width-gutter,bottom:height-18};
-    }else{
-      const cardBottom=width>=720?32:0;
-      bounds={left:gutter,top,right:width-gutter,bottom:Math.max(top+120,height-cardHeight-cardBottom-20)};
-    }
-    const bw=bounds.right-bounds.left,bh=bounds.bottom-bounds.top;
-    const major=Math.min(portrait?bh:bw,portrait?bw*2:bh*2)*.94;
-    const cx=(bounds.left+bounds.right)/2,cy=(bounds.top+bounds.bottom)/2;
-    // Cover the farthest viewport corner even while the sky gently rises into
-    // the reserved map area. A plain viewport diagonal misses those corners.
-    const side=Math.ceil(2*Math.hypot(Math.max(cx,width-cx),Math.max(cy,height-cy)))+4;
-    return{width,height,side,portrait,bounds,major,scale:major/side,cx,cy};
+    const cardBottom=width>=720?32:0;
+
+    // Labels remain screen-space and avoid the completion card, while the sky
+    // itself always occupies the complete viewport behind them.
+    const bounds={
+      left:gutter,
+      top,
+      right:width-gutter,
+      bottom:Math.max(top+120,height-cardHeight-cardBottom-18)
+    };
+
+    // Build a landscape Aladin surface on portrait screens, then rotate it 90°
+    // in CSS. At the final scale, its rotated dimensions exactly fill the phone.
+    // Overscan hides corners during the more expressive mid-finale rotation.
+    const overscan=portrait?1.18:1.13;
+    const baseWidth=portrait?height:width;
+    const baseHeight=portrait?width:height;
+    const surfaceWidth=Math.ceil(baseWidth*overscan);
+    const surfaceHeight=Math.ceil(baseHeight*overscan);
+    return{
+      width,height,portrait,bounds,
+      surfaceWidth,surfaceHeight,
+      startScale:portrait?Math.max(1,(height/surfaceHeight)*1.035):1,
+      finalScale:1/overscan,
+      finalRotation:portrait?90:0,
+      cx:width/2,cy:height/2
+    };
   }
 
   function toScreen(point,state){
-    const a=radians(state.rotation),x=(point[0]-state.side/2)*state.scale,y=(point[1]-state.side/2)*state.scale;
+    const a=radians(state.rotation);
+    const x=(point[0]-state.surfaceWidth/2)*state.scale;
+    const y=(point[1]-state.surfaceHeight/2)*state.scale;
     return[state.cx+x*Math.cos(a)-y*Math.sin(a),state.cy+x*Math.sin(a)+y*Math.cos(a)];
   }
   function toSkyPixel(point,state){
     const a=radians(-state.rotation),x=point[0]-state.cx,y=point[1]-state.cy;
-    return[state.side/2+(x*Math.cos(a)-y*Math.sin(a))/state.scale,state.side/2+(x*Math.sin(a)+y*Math.cos(a))/state.scale];
+    return[
+      state.surfaceWidth/2+(x*Math.cos(a)-y*Math.sin(a))/state.scale,
+      state.surfaceHeight/2+(x*Math.sin(a)+y*Math.cos(a))/state.scale
+    ];
   }
 
   // Five labels, two screen-space lanes. Keep 44px targets separated even when
@@ -135,7 +161,7 @@
       this.originalStyle=this.stage.getAttribute('style');
       this.frame=0;this.redrawFrame=0;this.elapsed=0;this.lastTime=0;
       this.exploring=false;this.destroyed=false;this.points=new Map();this.removers=[];
-      this.labelItems=[];this.titleShown=false;this.titleOut=false;this.labelsShown=false;
+      this.labelItems=[];this.titleShown=false;this.titleOut=false;this.labelsShown=false;this.completionShown=false;
       this.resizeListener=()=>{
         if(this.destroyed)return;
         this.measure();
@@ -154,8 +180,9 @@
       this.card.classList.remove('measure');
       this.layout=getLayout(rect.width,rect.height,card.width,card.height);
       this.stage.style.inset='auto';
-      this.stage.style.width=`${this.layout.side}px`;
-      this.stage.style.height=`${this.layout.side}px`;
+      this.stage.style.width=`${this.layout.surfaceWidth}px`;
+      this.stage.style.height=`${this.layout.surfaceHeight}px`;
+      this.stage.style.left='50%';this.stage.style.top='50%';
       this.ui.style.setProperty('--map-bottom',`${rect.height-this.layout.bounds.bottom}px`);
       this.ui.style.setProperty('--map-top',`${this.layout.bounds.top}px`);
       this.leaders.setAttribute('viewBox',`0 0 ${rect.width} ${rect.height}`);
@@ -198,7 +225,7 @@
       this.app.classList.add('finale-mode');this.ui.classList.remove('on','interactive');
       this.ui.inert=true;this.ui.setAttribute('aria-hidden','true');
       this.measure();
-      this.start={center,fov:clamp(fov*this.layout.side/Math.max(1,size[0]),.01,359)};
+      this.start={center,fov:clamp(fov*this.layout.surfaceWidth*this.layout.startScale/Math.max(1,size[0]),.01,359)};
       this.viewer.setProjection('AIT');this.viewer.setRotation(0);
       this.buildLabels();this.applyCamera(reduced?1:0);
       this.listen(window,'resize',this.resizeListener,{passive:true});
@@ -224,6 +251,9 @@
           if(this.elapsed>=this.duration-6000){
             if(!this.labelsShown){this.labelsShown=true;this.ui.classList.add('on');this.credit.classList.add('on')}
             this.drawLabels();
+          }
+          if(!this.completionShown&&this.elapsed>=this.duration-2500){
+            this.completionShown=true;this.onCompletion?.();
           }
           if(this.elapsed<this.duration+this.hold){this.frame=requestAnimationFrame(tick)}
           else{
@@ -317,7 +347,7 @@
             // A drag may start in the black outside the AIT ellipse. Map its
             // screen-space direction through the inverse transform as well.
             const previous=toSkyPixel(this.drag.point,this.state),next=toSkyPixel(point,this.state),center=this.viewer.getRaDec();
-            const perPixel=this.viewer.getFov()[0]/this.state.side;
+            const perPixel=this.viewer.getFov()[0]/Math.max(1,this.state.surfaceWidth);
             this.viewer.gotoRaDec(wrap(center[0]+(next[0]-previous[0])*perPixel),clamp(center[1]+(next[1]-previous[1])*perPixel,-89.5,89.5));
             this.drag.point=point;this.scheduleLabels();
           }
