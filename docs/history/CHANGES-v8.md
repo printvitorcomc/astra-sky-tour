@@ -13,5 +13,7 @@
 - iPhone/Safari hardware playback/mix behavior and actual interruption/resume behavior.
 - Android/Chrome and desktop visual pass for final frame sequences.
 
-## Welcome narration asset note
-The OpenRouter MCP TTS generation was invoked with `google/gemini-3.1-flash-tts-preview` / `Gacrux`, but this chat connector did not materialize the returned audio bytes into the working filesystem. `00-welcome-v8.mp3` is therefore a renamed fallback copy of the prior welcome asset so the build remains runnable; replace it with the generated v8 narration before production publication.
+## Welcome narration asset
+- Final `00-welcome-v8.mp3` supplied from the approved `google/gemini-3.1-flash-tts-preview` / `Gacrux` generation.
+- Verified as MP3 mono, 24 kHz, 64 kbps, with a duration of 27.456 seconds.
+- No runtime TTS, generation SDK or secret is included in the site.
