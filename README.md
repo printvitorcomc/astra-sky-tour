@@ -1,6 +1,6 @@
-# ASTRA — recovered cinematic
+# ASTRA — recovered cinematic-v2
 
-Recovered source snapshot from `ASTRA-cinematic-refinement.zip`.
+Recovered source snapshot from `ASTRA-cinematic-refinement-v2.zip`.
 This commit was created during the archive import, not during original development.
 
 Run `python3 -m http.server 8080 --directory public` and open
