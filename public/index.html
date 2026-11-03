@@ -657,6 +657,7 @@ function finaleEaseIn(t){return t*t*t}
 function finaleEaseOut(t){return 1-Math.pow(1-t,3)}
 
 
+
 function animateFinale(token,duration=OUTRO_DURATION){
   return new Promise(resolve=>{
     cancelArrivalZoom();resetSkyStage();
@@ -666,6 +667,11 @@ function animateFinale(token,duration=OUTRO_DURATION){
     const dRaToGalaxy=shortestDelta(startRa,EARTH_ANCHOR.ra),dDecToGalaxy=EARTH_ANCHOR.dec-startDec;
     const start=performance.now();let last=0,ait=false,titleShown=false,titleLeaving=false,travelChanged=false;
     const frameInterval=(innerWidth>=900&&!matchMedia('(pointer:coarse)').matches)?16:22;
+    const phase1End=3600;
+    const phase2End=10500;
+    const phase3End=18400;
+    const titleAt=10000;
+    const titleOutAt=24400;
     $('finaleOverlay').classList.add('on');
     try{aladin.setProjection('TAN');aladin.setRotation(0)}catch(_){ }
 
@@ -675,39 +681,41 @@ function animateFinale(token,duration=OUTRO_DURATION){
       if(elapsed<duration&&now-last<frameInterval){finaleFrame=requestAnimationFrame(frame);return}last=now;
 
       let ra,dec,fov,rotation;
-      if(elapsed<3000){
-        // Establish the orbit: a controlled pull-back toward the Milky Way, almost no spin yet.
-        const p=elapsed/3000,q=smootherstep(p);
-        ra=wrap360(startRa+dRaToGalaxy*q);dec=startDec+dDecToGalaxy*q;
-        fov=expLerp(startFov,30,q);
-        rotation=7*Math.pow(p,3.4);
-      }else if(elapsed<11000){
-        // Native sky rotation — not a rotated DOM canvas. It remains edge-to-edge at every angle.
-        const p=(elapsed-3000)/8000;
-        const q=smootherstep(p);
-        ra=EARTH_ANCHOR.ra;dec=EARTH_ANCHOR.dec;
-        fov=expLerp(30,6.9,q);
-        // Starts almost imperceptibly, then builds real angular momentum into the reveal.
-        rotation=7+(243)*Math.pow(p,3.05);
-      }else if(elapsed<18600){
-        // Keep the post-reveal movement elegant: momentum continues, then begins to release.
-        const p=(elapsed-11000)/7600,q=smootherstep(p);
-        ra=EARTH_ANCHOR.ra;dec=EARTH_ANCHOR.dec;
-        fov=expLerp(6.9,5.4,q);
-        rotation=250+(315-250)*smootherstep(p);
+      if(elapsed<phase1End){
+        // Smoothly pull away from the last star and settle into the Milky Way region.
+        const p=elapsed/phase1End,q=smootherstep(p);
+        ra=wrap360(startRa+dRaToGalaxy*q);
+        dec=startDec+dDecToGalaxy*q;
+        fov=expLerp(startFov,23.5,q);
+        rotation=2.2*Math.pow(p,2.8);
+      }else if(elapsed<phase2End){
+        // Build momentum very gradually: less zoom-in, more readable sky, smoother acceleration.
+        const p=(elapsed-phase1End)/(phase2End-phase1End),q=smootherstep(p);
+        ra=EARTH_ANCHOR.ra;
+        dec=EARTH_ANCHOR.dec;
+        fov=expLerp(23.5,12.8,q);
+        rotation=2.2+(154-2.2)*(q*q*(3-2*q));
+      }else if(elapsed<phase3End){
+        // The reveal should breathe: the camera already starts easing outward here, with no abrupt handoff.
+        const p=(elapsed-phase2End)/(phase3End-phase2End),q=smootherstep(p);
+        ra=EARTH_ANCHOR.ra;
+        dec=EARTH_ANCHOR.dec;
+        fov=expLerp(12.8,24.5,q);
+        rotation=154+(246-154)*q;
       }else{
-        const p=(elapsed-18600)/(duration-18600),q=smootherstep(p);
+        // Continue the same motion language into the all-sky reveal: progressive zoom-out, progressive deceleration.
+        const p=(elapsed-phase3End)/(duration-phase3End),q=smootherstep(p);
         const dRa=shortestDelta(EARTH_ANCHOR.ra,0);
-        ra=wrap360(EARTH_ANCHOR.ra+dRa*q);dec=EARTH_ANCHOR.dec*(1-q);
-        fov=expLerp(5.4,360,q);
-        rotation=315+(360-315)*smootherstep(p);
+        ra=wrap360(EARTH_ANCHOR.ra+dRa*q);
+        dec=EARTH_ANCHOR.dec*(1-q);
+        fov=expLerp(24.5,360,q);
+        rotation=246+(360-246)*q;
         if(!travelChanged){travelChanged=true;setTravel(true,'Revealing the full sky')}
-        // Switch projection only once the view is already broad, making the topology change unobtrusive.
-        if(!ait&&fov>=118){ait=true;try{aladin.setProjection('AIT')}catch(_){ }}
+        if(!ait&&fov>=150){ait=true;try{aladin.setProjection('AIT')}catch(_){ }}
       }
 
-      if(!titleShown&&elapsed>=10500){titleShown=true;$('finaleBrand').classList.add('on')}
-      if(!titleLeaving&&elapsed>=24200){titleLeaving=true;$('finaleBrand').classList.add('out')}
+      if(!titleShown&&elapsed>=titleAt){titleShown=true;$('finaleBrand').classList.add('on')}
+      if(!titleLeaving&&elapsed>=titleOutAt){titleLeaving=true;$('finaleBrand').classList.add('out')}
 
       try{aladin.gotoRaDec(ra,dec);aladin.setFoV(fov);aladin.setRotation(rotation)}catch(_){ }
 
