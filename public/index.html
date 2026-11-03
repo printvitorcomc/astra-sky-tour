@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://alasky.cds.unistra.fr" crossorigin>
 <link rel="dns-prefetch" href="//aladin.cds.unistra.fr">
 <link rel="dns-prefetch" href="//alasky.cds.unistra.fr">
-<link rel="preload" href="./audio/00-welcome.mp3" as="audio" type="audio/mpeg">
+<link rel="preload" href="./audio/00-welcome-v8.mp3" as="audio" type="audio/mpeg">
 <link rel="preload" href="./audio/01-antares.mp3" as="audio" type="audio/mpeg">
 <style>
 :root{
@@ -20,7 +20,6 @@
   --muted:#aaa9a5;
   --dim:#6e6d69;
   --white:#f4f4f1;
-  --accent:#e8bd73;
 }
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
@@ -37,12 +36,11 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .topbar.on{opacity:1;transform:translateY(0)}
 .progress{display:flex;align-items:center;gap:16px;background:none;border:0;padding:0;flex:0 0 auto}
 .coords{margin-left:auto;max-width:min(48vw,420px);font-variant-numeric:tabular-nums;font-size:11px;font-weight:500;letter-spacing:.075em;line-height:1.35;text-align:right;color:rgba(255,255,255,.66);white-space:nowrap;text-shadow:0 1px 12px rgba(0,0,0,.8)}
-.letter{position:relative;min-width:13px;height:22px;display:grid;place-items:center;font-size:12px;font-weight:600;color:rgba(255,255,255,.20);text-shadow:none;transition:color .55s ease,text-shadow .55s ease,transform .55s cubic-bezier(.2,.8,.2,1)}
-.letter:after{content:"";position:absolute;left:0;right:0;bottom:-5px;height:1px;background:transparent;transition:background .55s ease,transform .55s ease,box-shadow .55s ease;transform:scaleX(.22)}
-.letter.active{color:var(--accent);transform:translateY(-1px);text-shadow:0 0 18px rgba(232,189,115,.38)}
-.letter.active:after{background:var(--accent);box-shadow:0 0 10px rgba(232,189,115,.40);transform:scaleX(1)}
-.letter.done{color:rgba(255,255,255,.92)}
-.letter.done:after{background:rgba(255,255,255,.30);transform:scaleX(.58)}
+.letter{position:relative;min-width:13px;height:22px;display:grid;place-items:center;font-size:12px;font-weight:600;color:rgba(255,255,255,.40);transition:color .35s ease,text-shadow .35s ease;text-shadow:0 1px 8px rgba(0,0,0,.72)}
+.letter:after{content:"";position:absolute;left:0;right:0;bottom:-5px;height:1px;background:transparent;transition:background .35s ease,transform .35s ease;transform:scaleX(.3)}
+.letter.active{color:#E8C989;text-shadow:0 1px 10px rgba(0,0,0,.88),0 0 12px rgba(232,201,137,.18)}
+.letter.active:after{background:#E8C989;transform:scaleX(1)}
+.letter.done{color:#F4F4F1}
 
 .card{will-change:transform,opacity;position:absolute;z-index:35;left:0;right:0;bottom:0;padding:24px 22px calc(22px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:linear-gradient(180deg,rgba(6,6,6,.84),rgba(5,5,5,.96));backdrop-filter:blur(24px);transition:opacity .5s ease,transform .5s cubic-bezier(.2,.8,.2,1)}
 .card.hidden{opacity:0;transform:translateY(24px);pointer-events:none}
@@ -63,15 +61,10 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .travel{position:absolute;z-index:34;left:22px;bottom:max(26px,calc(18px + env(safe-area-inset-bottom)));display:none;align-items:center;gap:10px;color:rgba(255,255,255,.82);font-size:12px;font-weight:500;letter-spacing:.01em;pointer-events:none}
 .travel.on{display:flex}
 .travel-dot{width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 12px rgba(255,255,255,.65);animation:travelPulse 1.8s ease-in-out infinite}
-.earth-origin{position:absolute;z-index:38;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:10px;opacity:0;pointer-events:none;transition:opacity .9s ease;will-change:opacity}
-.earth-origin.on{opacity:1}
-.earth-origin.leaving{opacity:0}
-.earth-dot{width:8px;height:8px;border-radius:50%;background:#fff;box-shadow:0 0 18px rgba(255,255,255,.72);flex:0 0 auto}
-.earth-label{font-size:11px;font-weight:650;letter-spacing:.18em;color:#fff;text-shadow:0 2px 16px rgba(0,0,0,.9);transform-origin:center;will-change:transform,opacity;white-space:nowrap}
-.origin-chip{position:absolute;z-index:31;left:22px;top:max(56px,calc(env(safe-area-inset-top) + 38px));display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.64);font-size:10px;font-weight:600;letter-spacing:.13em;text-transform:uppercase;opacity:0;transform:translateY(-3px);pointer-events:none;transition:opacity .9s ease,transform .9s ease}
-.origin-chip.on{opacity:1;transform:none}
-.origin-chip i{display:block;width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(255,255,255,.55)}
 @keyframes travelPulse{0%,100%{opacity:.32}50%{opacity:1}}
+
+.sky-editorial{position:absolute;z-index:38;left:50%;top:42%;transform:translate(-50%,-50%);width:min(86vw,680px);text-align:center;font-size:clamp(18px,3vw,30px);font-weight:500;letter-spacing:-.025em;color:rgba(255,255,255,.96);text-shadow:0 3px 28px rgba(0,0,0,.92);opacity:0;pointer-events:none;transition:opacity .8s ease}.sky-editorial.on{opacity:1}
+.audio-recovery,.resume-journey{position:absolute;z-index:75;left:50%;bottom:max(24px,calc(20px + env(safe-area-inset-bottom)));transform:translateX(-50%);width:min(92vw,520px);padding:16px;border:1px solid var(--line);background:rgba(5,5,5,.94);backdrop-filter:blur(20px);border-radius:16px;display:none}.audio-recovery.on,.resume-journey.on{display:block}.audio-recovery p,.resume-journey p{margin:0 0 12px;font-size:13px;line-height:1.4;color:var(--muted)}.audio-actions{display:flex;gap:8px;flex-wrap:wrap}.audio-actions button,.resume-journey button{border:1px solid var(--line);background:#fff;color:#050505;border-radius:999px;padding:10px 14px;font-weight:650;cursor:pointer}.audio-actions button.secondary{background:transparent;color:var(--text)}
 
 
 .endcard{position:absolute;z-index:36;left:0;right:0;bottom:0;display:none;padding:28px 22px calc(24px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:rgba(5,5,5,.94);backdrop-filter:blur(24px)}
@@ -97,23 +90,10 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .gate-eyebrow{font-size:12px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:18px}
 .gate h1{font-size:clamp(68px,21vw,118px);font-weight:500;line-height:.78;letter-spacing:-.075em;margin:0 0 26px}
 .gate p{color:var(--muted);font-size:16px;line-height:1.45;margin:0;max-width:430px}
-.start{position:relative;isolation:isolate;overflow:hidden;margin-top:28px;border:1px solid var(--white);background:var(--white);color:#050505;border-radius:999px;padding:14px 20px;font-size:15px;font-weight:650;cursor:pointer;min-width:190px;transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .45s ease}
-.start:before{content:"";position:absolute;z-index:-1;inset:-2px;background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.95) 48%,transparent 76%);transform:translateX(-125%);opacity:.8}
-.start:hover{transform:translateY(-2px);box-shadow:0 8px 34px rgba(255,255,255,.12)}
-.start:hover:before{animation:startSheen 1.35s cubic-bezier(.2,.8,.2,1)}
-.start.launching{animation:startLaunch .72s cubic-bezier(.16,.82,.24,1) both;pointer-events:none}
-.start.launching:before{animation:startSheen .72s cubic-bezier(.16,.82,.24,1)}
-@keyframes startSheen{to{transform:translateX(125%)}}
-@keyframes startLaunch{0%{transform:scale(1);box-shadow:0 0 0 rgba(255,255,255,0)}45%{transform:scale(.975);box-shadow:0 0 0 10px rgba(255,255,255,.05)}100%{transform:scale(1.015);box-shadow:0 0 0 22px rgba(255,255,255,0)}}
+.start{margin-top:28px;border:1px solid var(--white);background:var(--white);color:#050505;border-radius:999px;padding:14px 20px;font-size:15px;font-weight:650;cursor:pointer;min-width:190px;transition:transform .18s ease}
+.start:hover{transform:translateY(-1px)}
 .sound-note{display:flex;align-items:center;gap:10px;margin-top:24px;color:#fff;font-size:18px;font-weight:500;line-height:1.2}
 .sound-note svg{width:22px;height:22px;flex:0 0 auto;stroke:currentColor}
-
-.reality-prelude{position:absolute;z-index:52;inset:0;display:grid;place-items:center;padding:24px;pointer-events:none;opacity:0;visibility:hidden;background:radial-gradient(circle at 50% 50%,rgba(0,0,0,.22),rgba(0,0,0,.04) 42%,rgba(0,0,0,.20));transition:opacity 1.55s cubic-bezier(.2,.72,.2,1),visibility 0s linear 1.55s}
-.reality-prelude.on{opacity:1;visibility:visible;transition:opacity 1.55s cubic-bezier(.2,.72,.2,1)}
-.reality-copy{text-align:center;transform:translateY(6px);transition:transform 2.2s cubic-bezier(.2,.72,.2,1)}
-.reality-prelude.on .reality-copy{transform:none}
-.reality-copy strong{display:block;font-size:clamp(28px,5vw,58px);line-height:1;font-weight:500;letter-spacing:-.045em;color:rgba(255,255,255,.96);text-shadow:0 3px 28px rgba(0,0,0,.9)}
-.reality-copy small{display:block;margin-top:14px;font-size:11px;font-weight:550;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,255,255,.54);text-shadow:0 2px 16px #000}
 
 .loader{position:absolute;z-index:70;inset:0;display:grid;place-items:center;background:#050505;padding:24px;text-align:center;transition:opacity .45s ease}
 .loader.off{opacity:0;pointer-events:none}
@@ -121,7 +101,7 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 .fallback-transcript{display:none}
 
 @media (min-width:720px){
-  .topbar{top:28px;left:32px;right:32px}.progress{gap:22px}.letter{font-size:13px}.coords{font-size:11px;letter-spacing:.08em}.origin-chip{left:32px;top:62px}
+  .topbar{top:28px;left:32px;right:32px}.progress{gap:22px}.letter{font-size:13px}.coords{font-size:11px;letter-spacing:.08em}
   .card{left:32px;right:auto;bottom:32px;width:min(460px,calc(100% - 64px));padding:26px 28px 28px;border:1px solid var(--line);border-radius:2px;background:rgba(5,5,5,.88)}
   .star{font-size:56px}.type{font-size:15px}.fact strong{font-size:15px}.travel{left:32px;bottom:32px;font-size:13px}
   .endcard{left:32px;right:auto;bottom:32px;width:min(520px,calc(100% - 64px));padding:30px 30px 28px;border:1px solid var(--line);border-radius:2px}
@@ -129,12 +109,12 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
 }
 @media (max-width:430px){
   .sky-preloader{width:340px;height:230px}
-  .topbar{top:max(18px,env(safe-area-inset-top));left:18px;right:18px;gap:14px}.progress{gap:12px}.letter{font-size:11px}.coords{font-size:9px;letter-spacing:.045em;max-width:58vw}.origin-chip{left:18px;top:max(49px,calc(env(safe-area-inset-top) + 34px));font-size:9px}
+  .topbar{top:max(18px,env(safe-area-inset-top));left:18px;right:18px;gap:14px}.progress{gap:12px}.letter{font-size:11px}.coords{font-size:9px;letter-spacing:.045em;max-width:58vw}
   .card{padding-left:18px;padding-right:18px}.gate{padding-left:18px;padding-right:18px}.gate h1{font-size:72px}.gate p{font-size:15px}.sound-note{font-size:18px}
 }
-@media (prefers-reduced-motion:reduce){.travel-dot{animation:none}.card,.gate,.earth-origin,.origin-chip,.reality-prelude,.reality-copy{transition:none}.start.launching{animation:none}}
+@media (prefers-reduced-motion:reduce){.travel-dot{animation:none}.card,.gate,.earth-origin{transition:none}}
 
-/* v8: full-bleed finale. The map remains background-first; UI stays in screen space. */
+/* v7: reserve a usable map area, rotating the sky surface only. */
 .endcard{opacity:0;transform:translateY(10px);transition:opacity 1.1s ease,transform 1.1s ease}
 .endcard.on{opacity:1;transform:none;animation:endcardIn 1.1s ease both}
 .endcard.measure{display:block!important;visibility:hidden!important;pointer-events:none!important;animation:none!important;transform:none!important}
@@ -223,11 +203,6 @@ button:focus-visible{outline:2px solid #fff;outline-offset:3px}
   </div>
 
   <div class="travel" id="travel"><span class="travel-dot"></span><span id="travelText">Travelling</span></div>
-  <div class="origin-chip" id="originChip" aria-hidden="true"><i></i><span>Earth · origin</span></div>
-  <div class="earth-origin" id="earthOrigin" aria-hidden="true"><span class="earth-dot"></span><span class="earth-label">EARTH</span></div>
-  <div class="reality-prelude" id="realityPrelude" aria-hidden="true">
-    <div class="reality-copy"><strong>This is the real sky.</strong><small>Built from real astronomical survey imagery</small></div>
-  </div>
 
   <section class="card hidden" id="card" aria-live="polite" inert>
     <div class="kicker" id="stopLabel">STOP 1 · A</div>
@@ -287,27 +262,20 @@ const stars=[
 ];
 
 let aladin=null,skyPreloader=null,tourToken=0,currentIndex=-1,skyReady=false;
-let musicTrack=null,narrationTrack=null,musicFadeFrame=null,narrationResolve=null;
-let audioContext=null,musicSource=null,musicGain=null;
+let musicTrack=null,narrationTrack=null,narrationResolve=null;
+let audioContext=null,musicSourceNode=null,musicGain=null,audioGeneration=0,currentNarrationIndex=null,currentNarrationSource=null,currentNarrationStartedAt=0,currentNarrationOffset=0,pausedByVisibility=false;
 let gateMotionFrame=0,arrivalZoomFrame=0,finaleFrame=0,viewInteractionVersion=0,prewarmTimer=0,prewarmGeneration=0;
-const MUSIC_BASE=.18;
-const MUSIC_DUCK=.042;
+const MUSIC_BASE=.19;
+const MUSIC_DUCK=.045;
 const SURVEY_URL='https://alasky.cds.unistra.fr/DSS/DSSColor/';
-const GALACTIC_CENTER={ra:266.4,dec:-29.0};
-const SFX={
-  start:'./audio/sfx/ui-start.mp3',
-  click:'./audio/sfx/ui-click.mp3',
-  transitions:['./audio/sfx/transition-01.mp3','./audio/sfx/transition-02.mp3','./audio/sfx/transition-03.mp3','./audio/sfx/transition-04.mp3','./audio/sfx/transition-05.mp3'],
-  finale:'./audio/sfx/finale-lift.mp3'
-};
-const WELCOME_DURATION=28896;
+const INITIAL_SKY_REGION={ra:266.4,dec:-29.0};
+const WELCOME_DURATION=28000;
 const OUTRO_DURATION=32448; // Supplied recording: unchanged.
 const FINALE_CAMERA_DURATION=44000;
 const NARRATION_ADVANCE_MS=2000;
 let markersCatalog=null,finaleController=null;
 const narrationCache=new Map();
 const specialAudioCache=new Map();
-const sfxCache=new Map();
 let finaleTimers=[];
 const $=id=>document.getElementById(id);
 const soundtrackUrl=window.ASTRA_CONFIG?.soundtrackUrl;
@@ -357,14 +325,8 @@ function interStarCenterProgress(raw){
 }
 
 
-function setProgress(i){
-  $('topbar').classList.add('on');
-  document.querySelectorAll('.letter').forEach((el,j)=>{
-    el.classList.toggle('active',j===i);el.classList.toggle('done',j<i);
-    if(j===i)el.setAttribute('aria-current','step');else el.removeAttribute('aria-current');
-  });
-}
-function clearProgress(){document.querySelectorAll('.letter').forEach(el=>{el.classList.remove('active','done');el.removeAttribute('aria-current')})}
+function setProgress(i){$('topbar').classList.add('on');document.querySelectorAll('.letter').forEach((el,j)=>{el.classList.toggle('active',j===i);el.classList.toggle('done',j<i);el.setAttribute('aria-current',j===i?'step':'false');el.setAttribute('aria-label',`${stars[j].letter}, ${j<i?'completed':j===i?'current':'upcoming'}`)})}
+function clearProgress(){document.querySelectorAll('.letter').forEach((el,j)=>{el.classList.remove('active','done');el.setAttribute('aria-current','false');el.setAttribute('aria-label',`${stars[j].letter}, upcoming`)})}
 function setCoords(text=''){const el=$('coords');if(el)el.textContent=text}
 function hideCard(){$('card').inert=true;$('card').classList.add('hidden');$('nextBtn').classList.remove('on');$('fallbackTranscript').classList.remove('on')}
 
@@ -375,163 +337,52 @@ function setTravel(on,text='Travelling'){
 function renderStar(i){const s=stars[i];setCoords(s.coords);$('stopLabel').textContent=`STOP ${i+1} · ${s.letter}`;$('starName').textContent=s.name;$('starType').textContent=s.type;$('fact1Label').textContent=s.fact1[0];$('fact1').textContent=s.fact1[1];$('fact2Label').textContent=s.fact2[0];$('fact2').textContent=s.fact2[1];$('card').inert=false;$('card').classList.remove('hidden')}
 function showNext(){const next=$('nextBtn');if(currentIndex<stars.length-1)next.textContent=`Continue to ${stars[currentIndex+1].name}`;else next.textContent='Finish the journey';next.classList.add('on')}
 
-function prepareSfx(src){
-  if(sfxCache.has(src))return sfxCache.get(src);
-  const a=new Audio(src);a.preload='auto';a.playsInline=true;a.load();sfxCache.set(src,a);return a;
+function ensureAudioContext(){
+  if(audioContext)return audioContext;
+  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return null;
+  audioContext=new AC();
+  musicTrack=$('musicTrack');
+  musicSourceNode=audioContext.createMediaElementSource(musicTrack);
+  musicGain=audioContext.createGain();musicGain.gain.value=MUSIC_BASE;
+  musicSourceNode.connect(musicGain).connect(audioContext.destination);
+  return audioContext;
 }
-function playSfx(src,volume=.34){
-  if(!src)return;
-  const base=prepareSfx(src);
-  let a=base;
-  if(!base.paused&&!base.ended){a=base.cloneNode(true)}
-  try{a.currentTime=0;a.volume=Math.max(0,Math.min(1,volume));const p=a.play();if(p&&p.catch)p.catch(()=>{})}catch(_){}
-}
-function primeSfx(){
-  prepareSfx(SFX.start);prepareSfx(SFX.click);SFX.transitions.forEach(prepareSfx);prepareSfx(SFX.finale);
-}
-function ensureAudioEngine(){
-  if(!musicTrack)musicTrack=$('musicTrack');
-  const AC=window.AudioContext||window.webkitAudioContext;
-  if(!AC||!musicTrack)return;
-  try{
-    if(!audioContext)audioContext=new AC();
-    if(audioContext.state==='suspended')audioContext.resume().catch(()=>{});
-    if(!musicSource){
-      musicSource=audioContext.createMediaElementSource(musicTrack);
-      musicGain=audioContext.createGain();
-      musicGain.gain.value=MUSIC_BASE;
-      musicSource.connect(musicGain).connect(audioContext.destination);
-      musicTrack.volume=1;
-    }
-  }catch(_){musicGain=null}
-}
-function unlockAllNarrations(){
-  for(let i=0;i<stars.length;i++)unlockNarration(i);
-}
-
-function prepareNarration(i){
-  if(i<0||i>=stars.length)return null;
-  if(narrationCache.has(i))return narrationCache.get(i);
-  const a=new Audio(stars[i].audio);
-  a.preload='auto';
-  a.load();
-  narrationCache.set(i,a);
-  return a;
-}
-function preloadNarrations(){
-  // Only the first narration is needed before the journey starts.
-  // Each following file is prefetched while the current stop is playing.
-  prepareNarration(0);
-}
-function prepareSpecial(src,preload='auto'){
+async function resumeAudioContext(){const ctx=ensureAudioContext();if(ctx&&ctx.state!=='running')try{await ctx.resume()}catch(_){}return ctx}
+function rampMusic(target,duration=900){const ctx=ensureAudioContext();if(!ctx||!musicGain)return;const now=ctx.currentTime,g=musicGain.gain;g.cancelScheduledValues(now);g.setValueAtTime(g.value,now);g.linearRampToValueAtTime(target,now+Math.max(.01,duration/1000))}
+function setMusicLevel(v){rampMusic(v,900)}
+async function startMusic(){const ctx=await resumeAudioContext();if(!musicTrack)musicTrack=$('musicTrack');if(!musicTrack||!musicTrack.getAttribute('src'))return false;musicTrack.preload='auto';if(musicGain)musicGain.gain.setValueAtTime(MUSIC_BASE,ctx.currentTime);try{await musicTrack.play();return true}catch(_){return false}}
+function attemptMusicAutoplay(){startMusic().catch(()=>{})}
+async function fetchAudioBuffer(src,retry=true){
   if(specialAudioCache.has(src))return specialAudioCache.get(src);
-  const a=new Audio(src);a.preload=preload;if(preload!=='none')a.load();specialAudioCache.set(src,a);return a;
+  const ctx=await resumeAudioContext();if(!ctx)throw new Error('Web Audio unavailable');
+  let lastErr;for(let n=0;n<(retry?2:1);n++){try{const r=await fetch(src,{cache:'force-cache'});if(!r.ok)throw new Error(`HTTP ${r.status}`);const b=await r.arrayBuffer();const decoded=await ctx.decodeAudioData(b.slice(0));specialAudioCache.set(src,decoded);return decoded}catch(e){lastErr=e;if(n===0)await sleep(350)}}throw lastErr||new Error('Audio load failed')
 }
-function playSpecial(src,onPlay){
-  return new Promise(resolve=>{
-    stopNarration();
-    const audio=prepareSpecial(src,'auto');
-    narrationTrack=audio;narrationResolve=resolve;
-    try{audio.currentTime=0}catch(_){}
-    audio.volume=1;
-    let finished=false;
-    const finish=()=>{if(finished)return;finished=true;fadeMusicTo(MUSIC_BASE,1100);if(narrationTrack===audio)narrationTrack=null;if(narrationResolve===resolve)narrationResolve=null;resolve()};
-    audio.onplay=()=>{fadeMusicTo(MUSIC_DUCK,850);try{onPlay&&onPlay()}catch(_){}};
-    audio.onended=finish;audio.onerror=finish;audio.play().catch(finish);
-  });
+function narrationSrc(i){return stars[i]?.audio||null}
+function prepareNarration(i){if(i<0||i>=stars.length)return Promise.resolve(null);if(narrationCache.has(i))return narrationCache.get(i);const p=fetchAudioBuffer(narrationSrc(i)).then(b=>{narrationCache.set(i,Promise.resolve(b));return b}).catch(e=>{narrationCache.delete(i);throw e});narrationCache.set(i,p);return p}
+function preloadNarrations(){prepareNarration(0).catch(()=>{})}
+function prepareSpecial(src){return fetchAudioBuffer(src).catch(()=>null)}
+function showNarrationRecovery(i,resolve){const panel=$('audioRecovery');panel.classList.add('on');let settled=false;const cleanup=()=>{panel.classList.remove('on');$('retryNarration').onclick=null;$('continueSilent').onclick=null};$('retryNarration').onclick=async()=>{if(settled)return;cleanup();specialAudioCache.delete(narrationSrc(i));narrationCache.delete(i);try{await playNarration(i);settled=true;resolve()}catch(_){showNarrationRecovery(i,resolve)}};$('continueSilent').onclick=()=>{if(settled)return;settled=true;cleanup();resolve()}}
+function stopNarration(){audioGeneration++;if(currentNarrationSource){try{currentNarrationSource.stop()}catch(_){}try{currentNarrationSource.disconnect()}catch(_){}}currentNarrationSource=null;currentNarrationIndex=null;currentNarrationOffset=0;if(narrationResolve){const r=narrationResolve;narrationResolve=null;r()}}
+async function playBuffer(buffer,{duck=true,onPlay=null,index=null,offset=0}={}){
+  const ctx=await resumeAudioContext();if(!ctx||!buffer)throw new Error('Audio unavailable');
+  stopNarration();const generation=++audioGeneration;return new Promise((resolve,reject)=>{
+    narrationResolve=resolve;currentNarrationIndex=index;currentNarrationOffset=offset;currentNarrationStartedAt=ctx.currentTime;
+    const source=ctx.createBufferSource();source.buffer=buffer;source.connect(ctx.destination);currentNarrationSource=source;
+    let ended=false;const finish=(cancelled=false)=>{if(ended)return;ended=true;if(generation!==audioGeneration&&!cancelled)return;rampMusic(MUSIC_BASE,1100);if(currentNarrationSource===source)currentNarrationSource=null;if(narrationResolve===resolve)narrationResolve=null;resolve()};
+    source.onended=()=>finish();if(duck)rampMusic(MUSIC_DUCK,250);try{onPlay?.()}catch(_){}
+    try{source.start(0,Math.max(0,Math.min(offset,buffer.duration-.01)))}catch(e){reject(e);return}
+  })
 }
-function unlockNarration(i){
-  // Safari/iOS may require each media element to be touched by a user gesture once.
-  // Prime the exact narration element on the click, then pause/reset it for delayed playback.
-  const a=prepareNarration(i);if(!a||a.dataset.astraUnlocked==='1')return;
-  const wasMuted=a.muted;a.muted=true;
-  try{
-    const p=a.play();
-    if(p&&p.then)p.then(()=>{a.pause();try{a.currentTime=0}catch(_){}a.muted=wasMuted;a.dataset.astraUnlocked='1'}).catch(()=>{a.muted=wasMuted});
-    else{a.pause();try{a.currentTime=0}catch(_){}a.muted=wasMuted;a.dataset.astraUnlocked='1'}
-  }catch(_){a.muted=wasMuted}
-}
-
-function unlockSpecial(src){
-  const a=prepareSpecial(src,'auto');if(!a||a.dataset.astraUnlocked==='1')return;
-  const wasMuted=a.muted;a.muted=true;
-  try{
-    const p=a.play();
-    if(p&&p.then)p.then(()=>{a.pause();try{a.currentTime=0}catch(_){}a.muted=wasMuted;a.dataset.astraUnlocked='1'}).catch(()=>{a.muted=wasMuted});
-    else{a.pause();try{a.currentTime=0}catch(_){}a.muted=wasMuted;a.dataset.astraUnlocked='1'}
-  }catch(_){a.muted=wasMuted}
-}
-
-function stopNarration(){
-  if(narrationTrack){try{narrationTrack.pause();narrationTrack.currentTime=0}catch(_){}}
-  narrationTrack=null;
-  if(narrationResolve){const r=narrationResolve;narrationResolve=null;r()}
-}
-function fadeMusicTo(target,duration=900){
-  if(!musicTrack)musicTrack=$('musicTrack');
-  if(!musicTrack||!musicTrack.getAttribute('src'))return;
-  const safe=Math.max(0,Math.min(1,target));
-  if(musicGain&&audioContext){
-    try{
-      const now=audioContext.currentTime,current=musicGain.gain.value;
-      musicGain.gain.cancelScheduledValues(now);musicGain.gain.setValueAtTime(current,now);
-      musicGain.gain.linearRampToValueAtTime(safe,now+Math.max(.05,duration/1000));
-      return;
-    }catch(_){}
-  }
-  if(musicFadeFrame)cancelAnimationFrame(musicFadeFrame);
-  const start=musicTrack.volume,started=performance.now();
-  function step(now){const p=Math.min(1,(now-started)/duration),e=1-Math.pow(1-p,3);musicTrack.volume=start+(safe-start)*e;if(p<1)musicFadeFrame=requestAnimationFrame(step)}
-  musicFadeFrame=requestAnimationFrame(step);
-}
-function playNarration(i){
-  return new Promise(resolve=>{
-    stopNarration();
-    const audio=prepareNarration(i)
-    narrationTrack=audio;
-    narrationResolve=resolve;
-    try{audio.currentTime=0}catch(_){}
-    audio.volume=1;
-    let finished=false,retries=0;
-    const finish=()=>{if(finished)return;finished=true;fadeMusicTo(MUSIC_BASE,1100);if(narrationTrack===audio)narrationTrack=null;if(narrationResolve===resolve)narrationResolve=null;resolve()};
-    audio.onplay=()=>{fadeMusicTo(MUSIC_DUCK,850);prepareNarration(i+1);warmTarget(i+1,900)};
-    audio.onended=finish;
-    const retryOrFinish=()=>{
-      if(finished)return;
-      if(retries++>=1){finish();return}
-      try{audio.load()}catch(_){}
-      setTimeout(()=>{if(!finished)audio.play().catch(retryOrFinish)},140);
-    };
-    audio.onerror=retryOrFinish;
-    audio.play().catch(retryOrFinish);
-  });
-}
-function setMusicLevel(v){fadeMusicTo(v,900)}
-function startMusic(){
-  if(!musicTrack)musicTrack=$('musicTrack');
-  if(!musicTrack||!musicTrack.getAttribute('src'))return Promise.resolve(false);
-  ensureAudioEngine();
-  musicTrack.preload='auto';
-  if(musicGain)musicGain.gain.value=MUSIC_BASE;else musicTrack.volume=MUSIC_BASE;
-  const p=musicTrack.play();
-  if(p&&p.then)return p.then(()=>true).catch(()=>false);
-  return Promise.resolve(true);
-}
-function attemptMusicAutoplay(){
-  if(!musicTrack)musicTrack=$('musicTrack');
-  if(!musicTrack||!musicTrack.getAttribute('src'))return;
-  musicTrack.volume=MUSIC_BASE;
-  const p=musicTrack.play();
-  if(p&&p.catch)p.catch(()=>{});
-}
-
-
+async function playSpecial(src,onPlay){const buffer=await fetchAudioBuffer(src);return playBuffer(buffer,{duck:true,onPlay,index:null})}
+function playNarration(i){return new Promise(async resolve=>{try{const buffer=await prepareNarration(i);prepareNarration(i+1).catch(()=>{});warmTarget(i+1,900);await playBuffer(buffer,{duck:true,index:i});resolve()}catch(_){showNarrationRecovery(i,resolve)}})}
+function unlockNarration(){resumeAudioContext()}
+function unlockSpecial(){resumeAudioContext()}
 function primeAudioWhenIdle(){
   const run=()=>{
     if(!musicTrack)musicTrack=$('musicTrack');
     if(musicTrack){musicTrack.preload='auto';try{musicTrack.load()}catch(_){}}
-    prepareSpecial('./audio/00-welcome.mp3','auto');
-    prepareNarration(0);primeSfx();
+    prepareSpecial('./audio/00-welcome-v8.mp3');
+    prepareNarration(0);
   };
   const conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
   if(conn&&conn.saveData)return;
@@ -604,83 +455,66 @@ function startGateSkyMotion(){
   const w=Math.max(320,innerWidth||320),h=Math.max(480,innerHeight||480),aspect=w/h;
   const baseFov=aspect>=1.45?22:aspect>=.95?25:28;
   const start=performance.now();let last=0;
-  try{aladin.setProjection('TAN');aladin.setRotation(0);aladin.gotoRaDec(GALACTIC_CENTER.ra,GALACTIC_CENTER.dec);aladin.setFoV(baseFov)}catch(_){}
+  try{aladin.setProjection('TAN');aladin.setRotation(0);aladin.gotoRaDec(INITIAL_SKY_REGION.ra,INITIAL_SKY_REGION.dec);aladin.setFoV(baseFov)}catch(_){}
   function frame(now){
     if(!skyReady||$('gate').classList.contains('off')){gateMotionFrame=0;return}
-    if(now-last<40){gateMotionFrame=requestAnimationFrame(frame);return}last=now;
+    if(now-last<46){gateMotionFrame=requestAnimationFrame(frame);return}last=now;
     const elapsed=now-start;
-    if(elapsed<900){gateMotionFrame=requestAnimationFrame(frame);return}
-    const t=(elapsed-900)/42000;
-    // Slow enough to feel premium, large enough to be unmistakably alive.
-    const fov=baseFov+2.8*(.5-.5*Math.cos(t*Math.PI*2));
-    const ra=GALACTIC_CENTER.ra+.46*Math.sin(t*Math.PI*1.14);
-    const dec=GALACTIC_CENTER.dec+.27*Math.sin(t*Math.PI*.82+.55);
-    const rot=.55*Math.sin(t*Math.PI*.70);
-    try{aladin.gotoRaDec(ra,dec);aladin.setFoV(fov);aladin.setRotation(rot)}catch(_){}
+    // Give high-resolution DSS2 tiles a clean, motionless window first.
+    if(elapsed<450){gateMotionFrame=requestAnimationFrame(frame);return}
+    const t=(elapsed-450)/32000;
+    const wave=.5-.5*Math.cos(t*Math.PI*2);
+    const fov=baseFov+2.4*wave;
+    const ra=INITIAL_SKY_REGION.ra+.6*Math.sin(t*Math.PI*2),dec=INITIAL_SKY_REGION.dec+.3*Math.sin(t*Math.PI*2*.83);
+    try{aladin.gotoRaDec(ra,dec);aladin.setFoV(fov)}catch(_){}
     gateMotionFrame=requestAnimationFrame(frame);
   }
   gateMotionFrame=requestAnimationFrame(frame);
 }
-function showRealityPrelude(token){
-  return new Promise(resolve=>{
-    const el=$('realityPrelude');
-    if(!el||token!==tourToken){resolve();return}
-    el.classList.add('on');
-    setTimeout(()=>{if(token===tourToken)el.classList.remove('on')},3000);
-    setTimeout(resolve,4650);
-  });
-}
-function moveToEarth(token,duration=4800,onReveal=null){
+function overviewSky(token,duration=22800){
   return new Promise(resolve=>{
     if(!aladin||token!==tourToken){resolve();return}
-    const earth=$('earthOrigin'),center=aladin.getRaDec(),pair=(aladin.getFov&&aladin.getFov())||[28,28];
-    const startRa=center[0],startDec=center[1],startFov=Math.max(5,Number(pair[0])||28);
-    const targetFov=1.55,start=performance.now();let shown=false,last=0;
-    earth.classList.remove('on','leaving');$('originChip').classList.remove('on');
-    const label=earth.querySelector('.earth-label');if(label){label.style.transform='scale(1)';label.style.opacity='1'}
+    const center=aladin.getRaDec(),pair=(aladin.getFov&&aladin.getFov())||[28,28];
+    const startRa=center[0],startDec=center[1],startFov=Math.max(.2,Number(pair[0])||28);
+    const endRa=wrap360(startRa+4.2),endDec=Math.max(-58,Math.min(58,startDec+2.4)),endFov=Math.max(startFov,Math.min(getTravelProfile().cruise*.72,36));
+    const dRa=shortestDelta(startRa,endRa),dDec=endDec-startDec,start=performance.now();let last=0;
     try{aladin.setProjection('TAN');aladin.setRotation(0)}catch(_){}
+    const editorial=$('skyEditorial');editorial.classList.remove('on');
+    setTimeout(()=>{if(token===tourToken)editorial.classList.add('on')},200);
+    setTimeout(()=>{if(token===tourToken)editorial.classList.remove('on')},6000);
     function frame(now){
-      if(token!==tourToken){earth.classList.remove('on','leaving');resolve();return}
-      const raw=Math.min(1,(now-start)/duration);
-      if(raw<1&&now-last<28){requestAnimationFrame(frame);return}last=now;
-      const q=smootherstep(raw);
-      // The sky stays on the exact frame the user saw at click. Only the lens changes,
-      // removing the old "reload / location jump" impression.
-      const fov=expLerp(startFov,targetFov,q);
-      try{aladin.gotoRaDec(startRa,startDec);aladin.setFoV(fov)}catch(_){}
-      if(!shown&&raw>.70){shown=true;earth.classList.add('on');onReveal?.()}
-      if(raw<1)requestAnimationFrame(frame);else{earth.classList.add('on');resolve()}
-    }
-    requestAnimationFrame(frame)
+      if(token!==tourToken){editorial.classList.remove('on');resolve();return}
+      const raw=Math.min(1,(now-start)/duration),q=smootherstep(raw);
+      if(raw<1&&now-last<32){requestAnimationFrame(frame);return}last=now;
+      try{aladin.gotoRaDec(wrap360(startRa+dRa*q),startDec+dDec*q);aladin.setFoV(expLerp(startFov,endFov,q))}catch(_){}
+      if(raw<1)requestAnimationFrame(frame);else{editorial.classList.remove('on');resolve()}
+    }requestAnimationFrame(frame)
   })
 }
-function earthDeparture(token,duration=14000){
+function zoomOutToOverview(token,duration=18500){
   return new Promise(resolve=>{
+    cancelArrivalZoom();
     if(!aladin||token!==tourToken){resolve();return}
-    const earth=$('earthOrigin'),label=earth.querySelector('.earth-label'),profile=getTravelProfile(),pair=(aladin.getFov&&aladin.getFov())||[1.55,1.55];
-    const center=aladin.getRaDec(),startFov=Math.max(.7,Number(pair[0])||1.55),endFov=Math.min(profile.cruise*.74,44);
-    const start=performance.now();let last=0,originShown=false;
-    earth.classList.remove('leaving');earth.classList.add('on');
-    try{aladin.setProjection('TAN');aladin.setRotation(0)}catch(_){}
-    playSfx(SFX.transitions[0],.14);
+    const center=aladin.getRaDec(),pair=(aladin.getFov&&aladin.getFov())||[5,5];
+    const startFov=Math.max(2.5,Number(pair[0])||5),startRa=center[0],startDec=center[1];
+    const dRa=shortestDelta(startRa,0),dDec=-startDec,start=performance.now();
+    let switched=false,last=0;
+    try{aladin.setProjection('TAN')}catch(_){}
     function frame(now){
-      if(token!==tourToken){earth.classList.remove('on','leaving');resolve();return}
-      const raw=Math.min(1,(now-start)/duration);
-      if(raw<1&&now-last<28){requestAnimationFrame(frame);return}last=now;
-      const q=smootherstep(raw),fov=expLerp(startFov,endFov,q);
-      try{aladin.gotoRaDec(center[0],center[1]);aladin.setFoV(fov)}catch(_){}
-      // The word moves toward the viewer as the sky recedes: one continuous counter-motion.
-      if(label){
-        const z=smootherstep(Math.min(1,raw/.56));
-        label.style.transform=`scale(${1+26*z})`;
-        label.style.opacity=String(1-smootherstep((raw-.30)/.28));
+      if(token!==tourToken){resolve();return}
+      const raw=Math.min(1,(now-start)/duration),q=ease(raw);
+      if(raw<1&&now-last<38){requestAnimationFrame(frame);return}last=now;
+      const p=centerProgress(raw),ra=wrap360(startRa+dRa*p),dec=startDec+dDec*p;
+      const fov=expLerp(startFov,360,q);
+      if(!switched&&raw>=.16){
+        switched=true;
+        try{aladin.setProjection('AIT');aladin.gotoRaDec(ra,dec);aladin.setFoV(fov)}catch(_){}
+      }else{
+        try{aladin.gotoRaDec(ra,dec);aladin.setFoV(fov)}catch(_){}
       }
-      if(!originShown&&raw>.34){originShown=true;$('originChip').classList.add('on')}
-      if(raw>.56)earth.classList.add('leaving');
       if(raw<1)requestAnimationFrame(frame);else{
-        earth.classList.remove('on','leaving');
-        if(label){label.style.transform='scale(1)';label.style.opacity='1'}
-        $('originChip').classList.add('on');resolve()
+        try{aladin.setProjection('AIT');aladin.gotoRaDec(0,0);aladin.setFoV(360)}catch(_){}
+        resolve()
       }
     }
     requestAnimationFrame(frame)
@@ -760,8 +594,6 @@ async function arriveAt(i,options={}){
   const token=tourToken;
   currentIndex=i;setProgress(i);hideCard();
   const s=stars[i];setCoords(s.coords);
-  unlockNarration(i);
-  if(!options.initialLeg)playSfx(SFX.transitions[Math.min(i,SFX.transitions.length-1)],.25);
   setTravel(true,`Travelling to ${s.name}`);setMusicLevel(MUSIC_BASE);
 
   const initialLeg=Boolean(options.initialLeg);
@@ -793,6 +625,7 @@ async function arriveAt(i,options={}){
   if(!narrationStarted)startVoice();
   if(narrationPromise)await narrationPromise;
   if(token!==tourToken)return;
+  if(i===stars.length-1)document.querySelectorAll('.letter')[i]?.classList.add('done');
   showNext();
 }
 
@@ -818,10 +651,9 @@ function animateFinale(token,duration=FINALE_CAMERA_DURATION){
     viewer:aladin,stage:$('skyStage'),markers:markersCatalog,stars,
     onTravel:text=>setTravel(true,text),
     onTitle:()=>$('finaleBrand').classList.add('on'),
-    onTitleOut:()=>$('finaleBrand').classList.add('out'),
-    onCompletion:()=>{if(token===tourToken){setTravel(false);$('endcard').classList.add('on')}}
+    onTitleOut:()=>$('finaleBrand').classList.add('out')
   });
-  return finaleController.play({duration,hold:1000,isCurrent:()=>token===tourToken,reduced:reducedMotion()});
+  return finaleController.play({duration,hold:0,isCurrent:()=>token===tourToken,reduced:reducedMotion()});
 }
 
 async function finishTour(){
@@ -829,7 +661,6 @@ async function finishTour(){
   cancelArrivalZoom();hideCard();setCoords('');hideFinaleOverlay();
   $('topbar').classList.remove('on');
   setTravel(true,'Entering the final orbit');setMusicLevel(MUSIC_BASE);
-  playSfx(SFX.finale,.11);
 
   let beginFinale,finaleStarted=false;
   const finalePromise=new Promise(resolve=>{
@@ -846,39 +677,20 @@ async function finishTour(){
   if(token!==tourToken)return;
   setTravel(false);hideFinaleOverlay({preserveSky:true});
   finaleController?.enableExploration();
-  clearProgress();
-  document.querySelectorAll('.letter').forEach((el,idx)=>setTimeout(()=>{if(token===tourToken)el.classList.add('done')},idx*110));
+  document.querySelectorAll('.letter').forEach(el=>{el.classList.remove('active');el.classList.add('done');el.setAttribute('aria-current','false')});
   $('topbar').classList.add('on');$('endcard').classList.add('on');
 }
 
 async function startJourney(){
   if(!skyReady)return;
-  ensureAudioEngine();primeSfx();playSfx(SFX.start,.46);
-  startMusic();unlockSpecial('./audio/00-welcome.mp3');prepareSpecial('./audio/06-this-is-astra.mp3','auto');unlockAllNarrations();
+  await resumeAudioContext();startMusic();prepareSpecial('./audio/06-this-is-astra.mp3');
   stopGateSkyMotion();cancelArrivalZoom();
-  $('startBtn').classList.add('launching');
-  $('gate').classList.add('off');$('endcard').classList.remove('on');$('topbar').classList.remove('on');$('originChip').classList.remove('on');hideFinaleOverlay();
+  $('gate').classList.add('off');$('endcard').classList.remove('on');$('topbar').classList.remove('on');hideFinaleOverlay();
   stopNarration();tourToken++;const token=tourToken;clearProgress();setCoords('');
-
-  await showRealityPrelude(token);
-  if(token!==tourToken)return;
-
-  let introPromise=null;
-  const beginWelcome=()=>{if(!introPromise&&token===tourToken)introPromise=playSpecial('./audio/00-welcome.mp3',()=>prepareNarration(0))};
-  await moveToEarth(token,4800,beginWelcome);
-  if(token!==tourToken)return;
-  beginWelcome();
-  // Hold on the much tighter Earth view so DSS2 can resolve into the sharper tiles while music/narration are already running.
-  await sleep(1800);
-  if(token!==tourToken)return;
-  warmTarget(0,0);
-  await sleep(2200);
-  if(token!==tourToken)return;
-  // 4s hold + 14s departure preserves the previous 18s Earth-to-flight timeline.
-  await earthDeparture(token,14000);
-  if(token!==tourToken)return;
-
-  $('topbar').classList.add('on');$('startBtn').classList.remove('launching');
+  let introPromise=playSpecial('./audio/00-welcome-v8.mp3',()=>prepareNarration(0).catch(()=>{})).catch(()=>null);
+  warmTarget(0,9000);
+  await overviewSky(token,22800);if(token!==tourToken)return;
+  $('topbar').classList.add('on');
   arriveAt(0,{initialLeg:true,waitForAudio:introPromise});
 }
 function goNext(){if(currentIndex<stars.length-1){arriveAt(currentIndex+1)}else finishTour()}
@@ -892,21 +704,23 @@ function init(){
   preloadNarrations();
   if(typeof A==='undefined'){$('loader').innerHTML='<div class="loader-inner"><h1>ASTRA</h1><p>The sky viewer could not load. Please reload.</p></div>';return}
   A.init.then(()=>{
-    aladin=A.aladin('#aladin-lite-div',{survey:SURVEY_URL,target:`${GALACTIC_CENTER.ra} ${GALACTIC_CENTER.dec}`,fov:34,projection:'TAN',cooFrame:'ICRS',showCooGrid:false,showCooLocation:false,showReticle:false,showFrame:false,showLayersControl:false,showProjectionControl:false,showFullscreenControl:false,showZoomControl:false,showGotoControl:false,showContextMenu:false});
+    aladin=A.aladin('#aladin-lite-div',{survey:SURVEY_URL,target:'17 45 40 -29 00 28',fov:34,projection:'TAN',cooFrame:'ICRS',showCooGrid:false,showCooLocation:false,showReticle:false,showFrame:false,showLayersControl:false,showProjectionControl:false,showFullscreenControl:false,showZoomControl:false,showGotoControl:false,showContextMenu:false});
     addMarkers();skyReady=true;primeAudioWhenIdle();setTimeout(()=>{$('loader').classList.add('off');startGateSkyMotion()},650)
   }).catch(()=>{$('loader').innerHTML='<div class="loader-inner"><h1>ASTRA</h1><p>The astronomical viewer hit an error. Please reload.</p></div>'})
 }
 
 $('startBtn').addEventListener('click',startJourney);
-$('nextBtn').addEventListener('click',()=>{playSfx(SFX.click,.34);goNext()});
+$('nextBtn').addEventListener('click',goNext);
 $('nextBtn').addEventListener('pointerenter',()=>warmTarget(currentIndex+1,0),{passive:true});
 $('nextBtn').addEventListener('touchstart',()=>warmTarget(currentIndex+1,0),{passive:true});
-$('replay').addEventListener('click',()=>{playSfx(SFX.click,.34);tourToken++;$('endcard').classList.remove('on');$('gate').classList.remove('off');$('topbar').classList.remove('on');$('originChip').classList.remove('on');$('startBtn').classList.remove('launching');clearProgress();setCoords('');currentIndex=-1;stopNarration();cancelArrivalZoom();hideFinaleOverlay();try{aladin.setProjection('TAN');aladin.setRotation(0);aladin.gotoRaDec(GALACTIC_CENTER.ra,GALACTIC_CENTER.dec);aladin.setFoV(25)}catch(_){}startGateSkyMotion()});
+$('replay').addEventListener('click',()=>{tourToken++;$('endcard').classList.remove('on');$('gate').classList.remove('off');$('topbar').classList.remove('on');clearProgress();setCoords('');currentIndex=-1;stopNarration();cancelArrivalZoom();hideFinaleOverlay();try{aladin.setProjection('TAN');aladin.setRotation(0);aladin.gotoRaDec(INITIAL_SKY_REGION.ra,INITIAL_SKY_REGION.dec);aladin.setFoV(innerWidth/Math.max(1,innerHeight)>=1.45?22:innerWidth/Math.max(1,innerHeight)>=.95?25:28)}catch(_){}startGateSkyMotion()});
 const skyEl=$('aladin-lite-div');
 ['pointerdown','touchstart'].forEach(type=>skyEl.addEventListener(type,noteViewInteraction,{passive:true}));
 skyEl.addEventListener('wheel',noteViewInteraction,{passive:true});
 document.addEventListener('pointerdown',()=>{if(musicTrack&&musicTrack.paused)startMusic()},{once:true,passive:true});
 document.addEventListener('keydown',()=>{if(musicTrack&&musicTrack.paused)startMusic()},{once:true});
+document.addEventListener('visibilitychange',async()=>{if(!audioContext)return;if(document.hidden&&audioContext.state==='running'){pausedByVisibility=true;try{await audioContext.suspend()}catch(_){}}else if(!document.hidden&&pausedByVisibility){$('resumeJourney').classList.add('on')}});
+$('resumeJourneyBtn').addEventListener('click',async()=>{await resumeAudioContext();pausedByVisibility=false;$('resumeJourney').classList.remove('on')});
 window.addEventListener('load',init);
 </script>
 </body>
